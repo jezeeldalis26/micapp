@@ -132,9 +132,9 @@ body {
 .dark-theme .hover\\:text-blue-700:hover { color: #93c5fd !important; }
 .dark-theme .hover\\:bg-rose-50:hover { background-color: rgba(159, 18, 57, 0.3) !important; color: #fda4af !important; }
 
-.dark-theme .bg-emerald-50\\/60 { background-color: rgba(16, 185, 129, 0.1) !important; }
-.dark-theme .bg-rose-50\\/60 { background-color: rgba(225, 29, 72, 0.1) !important; }
-.dark-theme .bg-amber-50\\/60 { background-color: rgba(245, 158, 11, 0.1) !important; }
+.dark-theme .bg-emerald-50\\/60 { background-color: rgba(16, 185, 129, 0.15) !important; }
+.dark-theme .bg-rose-50\\/60 { background-color: rgba(225, 29, 72, 0.15) !important; }
+.dark-theme .bg-amber-50\\/60 { background-color: rgba(245, 158, 11, 0.15) !important; }
 
 .dark-theme input, .dark-theme select { 
   background-color: #334155 !important; 
@@ -1243,7 +1243,13 @@ export default function App() {
                 {t('greeting')}, {profile.firstName}
               </h1>
             </div>
-            <p className="text-slate-500 mt-1 font-medium">{t('appSubtitle')}</p>
+            
+            <div className={`mt-2 flex items-center gap-1.5 text-sm font-bold ${comparisonStats.diff > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+              {comparisonStats.diff > 0 ? <TrendingUp size={18}/> : <TrendingDown size={18}/>}
+              <span>
+                {Math.abs(comparisonStats.diff).toFixed(1)}% {comparisonStats.diff > 0 ? t('spentMore') : t('spentLess')}
+              </span>
+            </div>
           </div>
           
           <div className="flex items-center gap-3">
@@ -1374,12 +1380,6 @@ export default function App() {
                 <h2 className="text-2xl md:text-3xl font-bold text-rose-600 mt-1">
                   {formatCurrency(stats.egresos)}
                 </h2>
-                <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${comparisonStats.diff > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                  {comparisonStats.diff > 0 ? <TrendingUp size={14}/> : <TrendingDown size={14}/>}
-                  <span>
-                    {Math.abs(comparisonStats.diff).toFixed(1)}% {comparisonStats.diff > 0 ? t('spentMore') : t('spentLess')}
-                  </span>
-                </div>
               </div>
               <div className="p-3 bg-rose-100 rounded-2xl text-rose-600">
                 <TrendingDown size={24} />
@@ -1563,9 +1563,9 @@ export default function App() {
                   <div key={tr.id} className={`p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${bgClass} transition-colors`}>
                     <div className="flex items-center gap-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{tr.concept}</span>
+                        <span className="text-sm font-bold text-slate-900 dark:text-white">{tr.concept}</span>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                             {tr.date.split('-').reverse().join('/')} {tr.createdAt && `• ${tr.createdAt}`}
                           </span>
                           <span className="px-2 py-0.5 text-[10px] font-bold rounded-md" style={{ color: COLORES_CATEGORIAS[tr.category] || '#94a3b8', backgroundColor: `${COLORES_CATEGORIAS[tr.category] || '#94a3b8'}20` }}>
