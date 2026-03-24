@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Trash2, TrendingUp, TrendingDown, Target, Pencil, Check, Lightbulb, Menu, X, FileText, Download, UserCog, LogOut, AlertTriangle, PiggyBank, Wallet } from 'lucide-react';
+import { Trash2, TrendingUp, TrendingDown, Target, Pencil, Check, Lightbulb, Menu, X, FileText, Download, UserCog, LogOut, AlertTriangle, PiggyBank, Wallet, PieChart as PieChartIcon } from 'lucide-react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -275,7 +275,7 @@ const translations = {
     last7days: "Últimos 7 dias", last15days: "Últimos 15 dias", last30days: "Últimos 30 dias",
     last90days: "Últimos 90 dias", allTime: "Todo o histórico", generatePDF: "Gerar PDF",
     budgets: "Orçamentos por Categoria", budgetExceeded: "Orçamento excedido",
-    spentMore: "a mais que o mês pasado", spentLess: "a menos que o mês pasado", noLimit: "Sem limite",
+    spentMore: "a mais que o mês passado", spentLess: "a menos que o mês passado", noLimit: "Sem limite",
     errorLogin: "Erro ao iniciar sessão. Tente novamente.",
     errorSave: "Erro ao sincronizar com a nuvem.",
     errorPDF: "Ocorreu um problema ao gerar o PDF.",
@@ -325,7 +325,7 @@ const COLORES_CATEGORIAS = {
 };
 
 const DATOS_EJEMPLO = [];
-const RAW_SVG_LOGO = `<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"><defs><linearGradient id="Degradado_sin_nombre_7" data-name="Degradado sin nombre 7" x1="77.23" y1="488.48" x2="901.64" y2="488.48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4bd400"/><stop offset="1" stop-color="#f0ff15"/></linearGradient></defs><path d="m217.11,723.75c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.66,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.22-8.48-22.88-14.51-6.66-6.01-11.92-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c0-32.23,6.34-62.63,19.01-91.21,12.67-28.57,29.97-53.5,51.89-74.77,21.92-21.27,47.38-38.13,76.38-50.6,29.01-12.46,59.62-18.69,91.85-18.69s64.99,6.45,94.43,19.34c29.43,12.89,55.32,30.52,77.67,52.86,22.34-22.34,48.44-39.96,78.31-52.86,29.86-12.89,61.56-19.34,95.08-19.34s63.17,6.02,91.53,18.05c28.36,12.04,53.28,28.58,74.77,49.63,21.48,21.06,38.68,45.55,51.57,73.48,12.89,27.94,19.98,57.8,21.27,89.6,0,.87.1,1.83.32,2.9.21,1.08.32,2.05.32,2.9v302.3c0,9.46-1.83,18.37-5.48,26.75-3.66,8.38-8.6,15.58-14.83,21.59-6.23,6.02-13.44,10.86-21.59,14.51-8.17,3.66-16.98,5.48-26.43,5.48s-18.59-1.82-27.39-5.48c-8.82-3.65-16.44-8.48-22.89-14.51-6.45-6.01-11.6-13.21-15.47-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-304.24c-.44-13.75-3.44-26.43-9.02-38.03-5.59-11.6-13-21.59-22.24-29.97-9.25-8.38-19.77-14.93-31.58-19.66-11.83-4.72-24.61-7.09-38.35-7.09s-26.86,2.58-39.32,7.73c-12.47,5.16-23.32,12.15-32.55,20.95-9.25,8.81-16.55,19.13-21.92,30.94-5.38,11.83-8.06,24.6-8.06,38.35v301.02c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.67,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.23-8.48-22.88-14.51-6.67-6.01-11.93-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c-.43-13.75-3.33-26.53-8.7-38.35-5.38-11.81-12.57-21.92-21.59-30.3-9.03-8.38-19.56-14.93-31.58-19.66-12.04-4.72-24.93-7.09-38.68-7.09s-26.75,2.48-39,7.41c-12.25,4.94-22.99,11.82-32.23,20.63-9.25,8.81-16.55,19.01-21.92,30.62-5.38,11.6-8.06,24.07-8.06,37.38v302.95Z" fill="url(#Degradado_sin_nombre_7)" stroke-width="0"/></svg>`;
+const RAW_SVG_LOGO = `<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"><defs><linearGradient id="Degradado_sin_nombre_7" data-name="Degradado sin nombre 7" x1="77.23" y1="488.48" x2="901.64" y2="488.48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4bd400"/><stop offset="1" stop-color="#f0ff15"/></linearGradient></defs><path d="m217.11,723.75c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.66,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.22-8.48-22.88-14.51-6.66-6.01-11.92-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c0-32.23,6.34-62.63,19.01-91.21,12.67-28.57,29.97-53.5,51.89-74.77,21.92-21.27,47.38-38.13,76.38-50.6,29.01-12.46,59.62-18.69,91.85-18.69s64.99,6.45,94.43,19.34c29.43,12.89,55.32,30.52,77.67,52.86,22.34-22.34,48.44-39.96,78.31-52.86,29.86-12.89,61.56-19.34,95.08-19.34s63.17,6.02,91.53,18.05c28.36,12.04,53.28,28.58,74.77,49.63,21.48,21.06,38.68,45.55,51.57,73.48,12.89,27.94,19.98,57.8,21.27,89.6,0,.87.1,1.83.32,2.9.21,1.08.32,2.05.32,2.9v302.3c0,9.46-1.83,18.37-5.48,26.75-3.66,8.38-8.6,15.58-14.83,21.59-6.23,6.02-13.44,10.86-21.59,14.51-8.17,3.66-16.98,5.48-26.43,5.48s-18.59-1.82-27.39-5.48c-8.82-3.65-16.44-8.48-22.89-14.51-6.45-6.01-11.6-13.21-15.47-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-304.24c-.44-13.75-3.44-26.43-9.02-38.03-5.59-11.6-13-21.59-22.24-29.97-9.25-8.38-19.77-14.93-31.58-19.66-11.83-4.72-24.61-7.09-38.35-7.09s-26.86,2.58-39.32,7.73c-12.47,5.16-23.32,12.15-32.55,20.95-9.25,8.81-16.55,19.13-21.92,30.94-5.38,11.83-8.06,24.6-8.06,38.35v301.02c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.67,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.23-8.48-22.88-14.51-6.67-6.01-11.93-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c-.43-13.75-3.33-26.53-8.7-38.35-5.38-11.81-12.57-21.92-21.59-30.3-9.03-8.38-19.56-14.93-31.58-19.66-12.04-4.72-24.93-7.09-38.68-7.09s-26.75,2.48-39,7.41c-12.25,4.94-22.99,11.82-32.23,20.63-9.25,8.81-16.55,19.01-21.92,30.62-5.38,11.6-8.06,24.07-8.06,37.38v302.95Z" fill="url(#Degradado_sin_nombre_7)" strokeWidth="0"/></svg>`;
 
 /* ---------------- COMPONENTES ---------------- */
 const GlassCard = ({ children, className = "" }) => (
@@ -704,14 +704,14 @@ export default function App() {
       const now = new Date();
       const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       const newTransaction = { ...formData, id: Date.now(), amount: amountUSD, createdAt: timeString };
+      
       setTransactions(prev => [newTransaction, ...prev]);
-      showToast(t('successSave') || "Guardado exitosamente", 'success');
 
-      // Notificación sugerida cada 5 registros nuevos
+      // FIX QUIRÚRGICO: Evitar choque de notificaciones
       if ((transactions.length + 1) % 5 === 0) {
-        setTimeout(() => {
-          showToast("Reporte actualizado descarga tu PDF ahora", 'info');
-        }, 2000);
+        showToast("Reporte actualizado, descarga tu PDF ahora", 'warning');
+      } else {
+        showToast(t('successSave') || "Guardado exitosamente", 'success');
       }
     }
     
@@ -766,6 +766,7 @@ export default function App() {
     setIsEditingMeta(true);
   };
 
+  // FIX QUIRÚRGICO: Los decimales del presupuesto se aplican al terminar de tipear (onBlur) para que no haya conflictos
   const handleBudgetChange = (cat, valueLocal) => {
     if (valueLocal === "") {
       const newB = { ...budgets };
@@ -1042,11 +1043,20 @@ export default function App() {
 
       {/* ---------------- TOASTS NOTIFICATIONS FLOTANTES ---------------- */}
       {toast.show && (
-        <div className={`fixed bottom-6 right-6 z-[100] px-5 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 animate-toast border ${toast.type === 'info' ? 'bg-white border-slate-200 text-slate-700' : toast.type === 'error' ? 'bg-rose-500 border-rose-600 text-white' : 'bg-emerald-500 border-emerald-600 text-white'}`}>
+        <div className={`fixed bottom-6 right-6 z-[100] px-5 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 animate-toast border ${
+          toast.type === 'info' ? 'bg-white border-slate-200 text-slate-700' : 
+          toast.type === 'warning' ? 'bg-amber-100 border-amber-300 text-amber-800' :
+          toast.type === 'error' ? 'bg-rose-500 border-rose-600 text-white' : 
+          'bg-emerald-500 border-emerald-600 text-white'
+        }`}>
           {toast.type === 'info' ? (
             <FileText size={20} className="shrink-0 text-blue-500" />
+          ) : toast.type === 'warning' ? (
+            <FileText size={20} className="shrink-0 text-amber-600" />
+          ) : toast.type === 'error' ? (
+            <AlertTriangle size={20} />
           ) : (
-            toast.type === 'error' ? <AlertTriangle size={20} /> : <Check size={20} />
+            <Check size={20} />
           )}
           {toast.msg}
         </div>
@@ -1210,10 +1220,13 @@ export default function App() {
                           {translateCategory(cat, currentLang)}
                         </span>
                         <input 
+                          key={`${cat}-${currentCurrency}`}
                           type="number" 
+                          step="0.01"
                           placeholder={t('noLimit')}
-                          value={limit}
-                          onChange={(e) => handleBudgetChange(cat, e.target.value)}
+                          defaultValue={limit}
+                          onBlur={(e) => handleBudgetChange(cat, e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
                           className="w-20 text-right p-1 text-sm bg-transparent border-b border-slate-300 outline-none focus:border-blue-500 font-semibold text-slate-700 placeholder-slate-400"
                         />
                     </div>
@@ -1527,7 +1540,8 @@ export default function App() {
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center min-h-[300px] text-slate-400">
-                <PieChart size={64} className="mb-4 opacity-50" />
+                {/* FIX QUIRÚRGICO: Usamos PieChartIcon de lucide-react para evitar que recharts cuelgue la app (White Screen) al no recibir data */}
+                <PieChartIcon size={64} className="mb-4 opacity-50" />
                 <p className="font-medium">{t('noExpenses')}</p>
               </div>
             )}
@@ -1566,12 +1580,12 @@ export default function App() {
                   <div key={tr.id} className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${bgClass} transition-colors`}>
                     <div className="flex items-center gap-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold" style={{ color: profile.theme === 'dark' ? '#f8fafc' : '#1e293b' }}>
+                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
                           {tr.concept}
                         </span>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-semibold" style={{ color: profile.theme === 'dark' ? '#94a3b8' : '#64748b' }}>
-                            {tr.date.split('-').reverse().join('/')} {tr.createdAt && `• ${tr.createdAt}`}
+                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                            {tr.date.split('-').reverse().join('/')} {tr.createdAt ? `• ${tr.createdAt}` : ''}
                           </span>
                           <span className="px-2 py-0.5 text-[10px] font-bold rounded-md" style={{ color: COLORES_CATEGORIAS[tr.category] || '#94a3b8', backgroundColor: `${COLORES_CATEGORIAS[tr.category] || '#94a3b8'}20` }}>
                             {translateCategory(tr.category, currentLang)}
@@ -1585,10 +1599,10 @@ export default function App() {
                         {tr.type === 'ingreso' ? '+' : '-'}{formatCurrency(tr.amount)}
                       </span>
                       <div className="flex items-center gap-1 no-print">
-                        <button onClick={() => iniciarEdicionTransaccion(tr)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                        <button onClick={() => iniciarEdicionTransaccion(tr)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Editar">
                           <Pencil size={16} />
                         </button>
-                        <button onClick={() => setTransactionToDelete(tr.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Eliminar">
+                        <button onClick={() => setTransactionToDelete(tr.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Eliminar">
                           <Trash2 size={16} />
                         </button>
                       </div>
