@@ -767,14 +767,16 @@ export default function App() {
   };
 
   const handleBudgetChange = (cat, valueLocal) => {
-    const val = Number(valueLocal);
-    if (!isNaN(val) && val >= 0) {
-      setBudgets(prev => ({ ...prev, [cat]: convertToUSD(val) }));
-    } else if (valueLocal === "") {
+    if (valueLocal === "") {
       const newB = { ...budgets };
       delete newB[cat];
       setBudgets(newB);
+      return;
     }
+    const val = parseFloat(valueLocal);
+    if (!isNaN(val) && val >= 0) {
+      setBudgets(prev => ({ ...prev, [cat]: convertToUSD(val) }));
+    } 
   };
 
   /* ---------- GENERADOR DE PDF AVANZADO ASÍNCRONO ---------- */
@@ -1042,7 +1044,7 @@ export default function App() {
       {toast.show && (
         <div className={`fixed bottom-6 right-6 z-[100] px-5 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 animate-toast border ${toast.type === 'info' ? 'bg-white border-slate-200 text-slate-700' : toast.type === 'error' ? 'bg-rose-500 border-rose-600 text-white' : 'bg-emerald-500 border-emerald-600 text-white'}`}>
           {toast.type === 'info' ? (
-            <CustomLogo className="w-6 h-6 shrink-0 drop-shadow-sm" />
+            <FileText size={20} className="shrink-0 text-blue-500" />
           ) : (
             toast.type === 'error' ? <AlertTriangle size={20} /> : <Check size={20} />
           )}
@@ -1187,7 +1189,7 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {CATEGORIAS_EGRESO.map(cat => {
                 const spent = gastosPorCategoria.find(g => g.name === cat)?.value || 0;
-                const limit = budgets[cat] ? convertFromUSD(budgets[cat]) : 0; 
+                const limit = budgets[cat] ? parseFloat((convertFromUSD(budgets[cat])).toFixed(2)) : ''; 
                 const percentage = limit > 0 ? (convertFromUSD(spent) / limit) * 100 : 0;
                 const isAhorro = cat === 'Ahorro';
                 
@@ -1210,7 +1212,7 @@ export default function App() {
                         <input 
                           type="number" 
                           placeholder={t('noLimit')}
-                          value={limit || ''}
+                          value={limit}
                           onChange={(e) => handleBudgetChange(cat, e.target.value)}
                           className="w-20 text-right p-1 text-sm bg-transparent border-b border-slate-300 outline-none focus:border-blue-500 font-semibold text-slate-700 placeholder-slate-400"
                         />
@@ -1564,9 +1566,11 @@ export default function App() {
                   <div key={tr.id} className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${bgClass} transition-colors`}>
                     <div className="flex items-center gap-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800">{tr.concept}</span>
+                        <span className="text-sm font-bold" style={{ color: profile.theme === 'dark' ? '#f8fafc' : '#1e293b' }}>
+                          {tr.concept}
+                        </span>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-semibold text-slate-500">
+                          <span className="text-xs font-semibold" style={{ color: profile.theme === 'dark' ? '#94a3b8' : '#64748b' }}>
                             {tr.date.split('-').reverse().join('/')} {tr.createdAt && `• ${tr.createdAt}`}
                           </span>
                           <span className="px-2 py-0.5 text-[10px] font-bold rounded-md" style={{ color: COLORES_CATEGORIAS[tr.category] || '#94a3b8', backgroundColor: `${COLORES_CATEGORIAS[tr.category] || '#94a3b8'}20` }}>
