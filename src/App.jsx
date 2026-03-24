@@ -132,6 +132,10 @@ body {
 .dark-theme .hover\\:text-blue-700:hover { color: #93c5fd !important; }
 .dark-theme .hover\\:bg-rose-50:hover { background-color: rgba(159, 18, 57, 0.3) !important; color: #fda4af !important; }
 
+.dark-theme .bg-emerald-50\\/60 { background-color: rgba(16, 185, 129, 0.1) !important; }
+.dark-theme .bg-rose-50\\/60 { background-color: rgba(225, 29, 72, 0.1) !important; }
+.dark-theme .bg-amber-50\\/60 { background-color: rgba(245, 158, 11, 0.1) !important; }
+
 .dark-theme input, .dark-theme select { 
   background-color: #334155 !important; 
   color: #f8fafc !important; 
@@ -148,7 +152,7 @@ const translations = {
     welcome: "Bienvenido a Micapp", setupSubtitle: "Selecciona tus preferencias para empezar",
     firstName: "Nombre", lastName: "Apellido", email: "Correo Electrónico", phone: "Teléfono",
     language: "Idioma", currency: "Moneda", startApp: "Entrar con Google",
-    greeting: "Hola", appSubtitle: "Controla tu dinero, domina tu futuro.",
+    greeting: "Hola", appSubtitle: "Lleva el control de tus finanzas facil",
     balance: "Balance", income: "Ingresos", expenses: "Egresos",
     savingsGoal: "Meta Ahorro", progress: "Progreso",
     newRecord: "Nuevo Registro", editRecord: "Editar Registro", expenseType: "Gasto", incomeType: "Ingreso",
@@ -196,7 +200,7 @@ const translations = {
     welcome: "Welcome to Micapp", setupSubtitle: "Select your preferences to start",
     firstName: "First Name", lastName: "Last Name", email: "Email", phone: "Phone",
     language: "Language", currency: "Currency", startApp: "Sign in with Google",
-    greeting: "Hello", appSubtitle: "Control your money, master your future.",
+    greeting: "Hello", appSubtitle: "Take control of your finances easily",
     balance: "Balance", income: "Income", expenses: "Expenses",
     savingsGoal: "Savings Goal", progress: "Progress",
     newRecord: "New Record", editRecord: "Edit Record", expenseType: "Expense", incomeType: "Income",
@@ -244,7 +248,7 @@ const translations = {
     welcome: "Bem-vindo ao Micapp", setupSubtitle: "Selecione suas preferências para começar",
     firstName: "Nome", lastName: "Sobrenome", email: "E-mail", phone: "Telefone",
     language: "Idioma", currency: "Moeda", startApp: "Entrar com o Google",
-    greeting: "Olá", appSubtitle: "Controle seu dinheiro, domine seu futuro.",
+    greeting: "Olá", appSubtitle: "Assuma o controle de suas finanças facilmente",
     balance: "Saldo", income: "Receitas", expenses: "Despesas",
     savingsGoal: "Meta de Economia", progress: "Progresso",
     newRecord: "Novo Registro", editRecord: "Editar Registro", expenseType: "Despesa", incomeType: "Receita",
@@ -376,7 +380,6 @@ export default function App() {
   
   // ESTADOS UI
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
-  const [termsAccepted, setTermsAccepted] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState(null);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
 
@@ -495,7 +498,6 @@ export default function App() {
 
   /* ---------- FUNCIONES DE AUTENTICACIÓN ---------- */
   const loginConGoogle = async () => {
-    if (!termsAccepted) return;
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
@@ -619,7 +621,7 @@ export default function App() {
 
   const REGLAS_INVERSION_USD = [
     { max: 0, texto: t('tip0') },
-    { max: 50, texto: t('tip50') },    
+    { max: 50, texto: t('tip50') },   
     { max: 200, texto: t('tip200') },  
     { max: 500, texto: t('tip500') }, 
     { max: 1000, texto: t('tip1000') }, 
@@ -703,6 +705,13 @@ export default function App() {
       const newTransaction = { ...formData, id: Date.now(), amount: amountUSD, createdAt: timeString };
       setTransactions(prev => [newTransaction, ...prev]);
       showToast(t('successSave') || "Guardado exitosamente", 'success');
+
+      // Notificación sugerida cada 5 registros nuevos
+      if ((transactions.length + 1) % 5 === 0) {
+        setTimeout(() => {
+          showToast("Reporte actualizado descarga tu PDF ahora", 'info');
+        }, 2000);
+      }
     }
     
     setFormData({ ...formData, amount: '', concept: '' });
@@ -728,7 +737,6 @@ export default function App() {
     });
   };
 
-  // NUEVA LOGICA PARA CONFIRMAR ELIMINACIÓN
   const confirmDelete = () => {
     if (!transactionToDelete) return;
     setTransactions(prev => prev.filter(tr => tr.id !== transactionToDelete));
@@ -969,7 +977,7 @@ export default function App() {
                 <p>Para dudas o soporte, puedes contactar a: <span className="font-semibold text-blue-600">amurdigitalcontacto@gmail.com</span></p>
               </div>
               
-              <button onClick={() => { setTermsAccepted(true); setActiveModal(null); }} className="w-full mt-6 py-3.5 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition">Aceptar y Cerrar</button>
+              <button onClick={() => { setActiveModal(null); }} className="w-full mt-6 py-3.5 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition">Aceptar y Cerrar</button>
             </div>
           </div>
         )}
@@ -1004,33 +1012,18 @@ export default function App() {
                 </select>
               </div>
             </div>
-
-            {/* Checkbox de Términos y Condiciones */}
-            <div className="flex items-start gap-2 mb-6 p-2">
-              <input 
-                type="checkbox" 
-                id="terms" 
-                checked={termsAccepted} 
-                onChange={e => setTermsAccepted(e.target.checked)} 
-                className="mt-1 w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer" 
-              />
-              <label htmlFor="terms" className="text-xs text-slate-500 cursor-pointer leading-tight">
-                {translations[currentLang].termsAcceptance} <button type="button" onClick={(e) => { e.preventDefault(); setActiveModal('terms'); }} className="text-blue-600 font-bold hover:underline">{translations[currentLang].termsLink}</button>
-              </label>
-            </div>
             
             <button 
               type="button" 
               onClick={loginConGoogle}
-              disabled={!termsAccepted}
-              className={`w-full py-4 font-bold rounded-xl shadow-sm flex items-center justify-center transition-all ${termsAccepted ? 'bg-white border border-slate-200 hover:border-blue-200 text-slate-700 hover:bg-slate-50 hover:shadow-md active:scale-[0.98]' : 'bg-slate-100 border border-slate-100 text-slate-400 cursor-not-allowed'}`}
+              className="w-full py-4 font-bold rounded-xl shadow-sm flex items-center justify-center transition-all bg-white border border-slate-200 hover:border-blue-200 text-slate-700 hover:bg-slate-50 hover:shadow-md active:scale-[0.98]"
             >
               <GoogleLogo />
               {translations[currentLang].startApp}
             </button>
             
-            <p className="text-center text-xs text-slate-400 mt-6">
-              Tus datos se guardarán de forma segura en la nube.
+            <p className="text-center text-xs text-slate-500 mt-5">
+              Al ingresar a Micapp aceptas nuestros <button type="button" onClick={(e) => { e.preventDefault(); setActiveModal('terms'); }} className="text-blue-600 font-bold hover:underline underline">términos y condiciones</button>
             </p>
           </GlassCard>
         </div>
@@ -1549,59 +1542,56 @@ export default function App() {
           </GlassCard>
         </div>
 
-        {/* TABLA DE MOVIMIENTOS */}
+        {/* LISTA RESPONSIVA DE MOVIMIENTOS (NUEVO DISEÑO MEJORADO) */}
         <GlassCard className="overflow-hidden flex flex-col">
           <h2 className="text-xl font-bold mb-4">{t('transactions')}</h2>
           
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b-2 border-slate-200/60 text-slate-500 text-sm uppercase">
-                  <th className="pb-3 font-bold pl-2">{t('date')}</th>
-                  <th className="pb-3 font-bold">{t('concept')}</th>
-                  <th className="pb-3 font-bold">{t('category')}</th>
-                  <th className="pb-3 font-bold text-right">{t('amount')}</th>
-                  <th className="pb-3 font-bold text-center w-24 no-print">{t('action')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentMonthTransactions.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" className="text-center py-8 text-slate-500 font-medium">
-                      {t('noTransactions')}
-                    </td>
-                  </tr>
-                ) : (
-                  [...currentMonthTransactions].sort((a,b) => new Date(b.date) - new Date(a.date)).map(tr => (
-                    <tr key={tr.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                      <td className="py-3 pl-2 text-sm text-slate-500 font-medium">
-                        <div>{tr.date.split('-').reverse().join('/')}</div>
-                        {tr.createdAt && <div className="text-[10px] text-slate-400 mt-0.5">{tr.createdAt}</div>}
-                      </td>
-                      <td className="py-3 font-semibold text-slate-800">{tr.concept}</td>
-                      <td className="py-3">
-                        <span className="px-2.5 py-1 text-xs font-bold rounded-lg border inline-block" style={{ borderColor: COLORES_CATEGORIAS[tr.category] || '#94a3b8', color: COLORES_CATEGORIAS[tr.category] || '#94a3b8', backgroundColor: `${COLORES_CATEGORIAS[tr.category] || '#94a3b8'}15` }}>
-                          {translateCategory(tr.category, currentLang)}
-                        </span>
-                      </td>
-                      <td className={`py-3 font-bold text-right ${tr.type === 'ingreso' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {tr.type === 'ingreso' ? '+' : '-'}{formatCurrency(tr.amount)}
-                      </td>
-                      <td className="py-3 text-center no-print">
-                        <div className="flex items-center justify-center gap-1">
-                          <button onClick={() => iniciarEdicionTransaccion(tr)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
-                            <Pencil size={16} />
-                          </button>
-                          <button onClick={() => setTransactionToDelete(tr.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Eliminar">
-                            <Trash2 size={16} />
-                          </button>
+          <div className="space-y-3 mt-2">
+            {currentMonthTransactions.length === 0 ? (
+              <div className="text-center py-8 text-slate-500 font-medium">
+                {t('noTransactions')}
+              </div>
+            ) : (
+              [...currentMonthTransactions].sort((a,b) => new Date(b.date) - new Date(a.date)).map(tr => {
+                const bgClass = tr.category === 'Ahorro' 
+                  ? 'bg-amber-50/60 dark:bg-amber-900/20' 
+                  : tr.type === 'ingreso' 
+                    ? 'bg-emerald-50/60 dark:bg-emerald-900/20' 
+                    : 'bg-rose-50/60 dark:bg-rose-900/20';
+
+                return (
+                  <div key={tr.id} className={`p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${bgClass} transition-colors`}>
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{tr.concept}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                            {tr.date.split('-').reverse().join('/')} {tr.createdAt && `• ${tr.createdAt}`}
+                          </span>
+                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-md" style={{ color: COLORES_CATEGORIAS[tr.category] || '#94a3b8', backgroundColor: `${COLORES_CATEGORIAS[tr.category] || '#94a3b8'}20` }}>
+                            {translateCategory(tr.category, currentLang)}
+                          </span>
                         </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                      <span className={`font-extrabold ${tr.type === 'ingreso' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {tr.type === 'ingreso' ? '+' : '-'}{formatCurrency(tr.amount)}
+                      </span>
+                      <div className="flex items-center gap-1 no-print">
+                        <button onClick={() => iniciarEdicionTransaccion(tr)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Editar">
+                          <Pencil size={16} />
+                        </button>
+                        <button onClick={() => setTransactionToDelete(tr.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Eliminar">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </GlassCard>
 
