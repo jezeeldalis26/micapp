@@ -308,7 +308,7 @@ const translateCategory = (cat, lang) => {
       'Servicios': 'Serviços', 'Alimentación': 'Alimentação', 'Filhos': 'Children', 'Transporte': 'Transporte',
       'Entretenimiento': 'Entretenimento', 'Educación': 'Educação', 'Deudas': 'Dívidas', 'Gastos Innecesarios': 'Gastos Desnecessários',
       'Ahorro': 'Poupança',
-      'Salario': 'Salário', 'Negocio': 'Negócio', 'Inversiones': 'Investimentos', 'Otros': 'Outros'
+      'Salario': 'Salário', 'Negocio': 'Negócio', 'Inversiones': 'Investimentos', 'Outros': 'Outros'
     }[cat] || cat
   };
   return dict[lang] || cat; 
@@ -326,8 +326,7 @@ const COLORES_CATEGORIAS = {
 
 const DATOS_EJEMPLO = [];
 const RAW_SVG_LOGO = `<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"><defs><linearGradient id="Degradado_sin_nombre_7" data-name="Degradado sin nombre 7" x1="77.23" y1="488.48" x2="901.64" y2="488.48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4bd400"/><stop offset="1" stop-color="#f0ff15"/></linearGradient></defs><path d="m217.11,723.75c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.66,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.22-8.48-22.88-14.51-6.66-6.01-11.92-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c0-32.23,6.34-62.63,19.01-91.21,12.67-28.57,29.97-53.5,51.89-74.77,21.92-21.27,47.38-38.13,76.38-50.6,29.01-12.46,59.62-18.69,91.85-18.69s64.99,6.45,94.43,19.34c29.43,12.89,55.32,30.52,77.67,52.86,22.34-22.34,48.44-39.96,78.31-52.86,29.86-12.89,61.56-19.34,95.08-19.34s63.17,6.02,91.53,18.05c28.36,12.04,53.28,28.58,74.77,49.63,21.48,21.06,38.68,45.55,51.57,73.48,12.89,27.94,19.98,57.8,21.27,89.6,0,.87.1,1.83.32,2.9.21,1.08.32,2.05.32,2.9v302.3c0,9.46-1.83,18.37-5.48,26.75-3.66,8.38-8.6,15.58-14.83,21.59-6.23,6.02-13.44,10.86-21.59,14.51-8.17,3.66-16.98,5.48-26.43,5.48s-18.59-1.82-27.39-5.48c-8.82-3.65-16.44-8.48-22.89-14.51-6.45-6.01-11.6-13.21-15.47-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-304.24c-.44-13.75-3.44-26.43-9.02-38.03-5.59-11.6-13-21.59-22.24-29.97-9.25-8.38-19.77-14.93-31.58-19.66-11.83-4.72-24.61-7.09-38.35-7.09s-26.86,2.58-39.32,7.73c-12.47,5.16-23.32,12.15-32.55,20.95-9.25,8.81-16.55,19.13-21.92,30.94-5.38,11.83-8.06,24.6-8.06,38.35v301.02c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.67,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.23-8.48-22.88-14.51-6.67-6.01-11.93-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c-.43-13.75-3.33-26.53-8.7-38.35-5.38-11.81-12.57-21.92-21.59-30.3-9.03-8.38-19.56-14.93-31.58-19.66-12.04-4.72-24.93-7.09-38.68-7.09s-26.75,2.48-39,7.41c-12.25,4.94-22.99,11.82-32.23,20.63-9.25,8.81-16.55,19.01-21.92,30.62-5.38,11.6-8.06,24.07-8.06,37.38v302.95Z" fill="url(#Degradado_sin_nombre_7)" strokeWidth="0"/>
-  </svg>
-);
+</svg>`;
 
 const GoogleLogo = () => (
   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5 mr-2 shrink-0">
@@ -338,7 +337,6 @@ const GoogleLogo = () => (
   </svg>
 );
 
-/* ---------------- COMPONENTES FALTANTES AÑADIDOS A CONTINUACIÓN ---------------- */
 const CustomLogo = ({ className = "" }) => (
   <img 
     src={`data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(RAW_SVG_LOGO)))}`} 
@@ -862,7 +860,7 @@ export default function App() {
       });
 
       doc.setFontSize(20);
-      doc.setTextColor(100, 116, 139); // Gris para el título principal
+      doc.setTextColor(100, 116, 139);
       doc.setFont('helvetica', 'normal');
       doc.text(t('financialReport').toUpperCase(), 14, 38);
       
@@ -873,7 +871,7 @@ export default function App() {
       }
 
       doc.setFontSize(11);
-      doc.setTextColor(148, 163, 184); // Gris más claro
+      doc.setTextColor(148, 163, 184);
       doc.text(`${t('period')}: ${rangeText}`, 14, 46);
       
       doc.setFontSize(12);
@@ -885,7 +883,7 @@ export default function App() {
         doc.text(profile.email, 140, 43);
       }
 
-      doc.setDrawColor(226, 232, 240); // Gris línea
+      doc.setDrawColor(226, 232, 240);
       doc.setLineWidth(0.5);
       doc.line(14, 51, 196, 51);
 
@@ -906,8 +904,8 @@ export default function App() {
         body: tableRows,
         startY: 81,
         theme: 'grid',
-        headStyles: { fillColor: [148, 163, 184], textColor: 255, fontStyle: 'bold' },
-        styles: { font: 'helvetica', fontSize: 10, textColor: [71, 85, 105] }, // Textos en gris 
+        headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontStyle: 'bold' },
+        styles: { font: 'helvetica', fontSize: 10, textColor: [71, 85, 105] }, 
         alternateRowStyles: { fillColor: [248, 250, 252] },
       });
 
@@ -1035,8 +1033,7 @@ export default function App() {
               {translations[currentLang].startApp}
             </button>
 
-            {/* Ajuste Quirúrgico 1: Texto extremadamente pequeño y sutil debajo del botón */}
-            <p className="text-center text-[9px] text-slate-400 opacity-40 mt-2">
+            <p className="text-center text-[9px] font-medium text-slate-400 opacity-40 mt-3">
               Desarrollado por Amur digital
             </p>
             
@@ -1587,12 +1584,11 @@ export default function App() {
                   <div key={tr.id} className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${bgClass} transition-colors`}>
                     <div className="flex items-center gap-4">
                       <div className="flex flex-col">
-                        {/* Ajuste Quirúrgico 4: Se reemplazaron estilos inline problemáticos por clases nativas de Tailwind */}
-                        <span className="text-slate-800 text-[14px] font-bold">
+                        <span className="text-slate-800 font-bold text-[14px]">
                           {tr.concept}
                         </span>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-slate-500 text-[12px] font-semibold">
+                          <span className="text-slate-500 font-semibold text-[12px]">
                             {tr.date.split('-').reverse().join('/')} {tr.createdAt && `• ${tr.createdAt}`}
                           </span>
                           <span className="px-2 py-0.5 text-[10px] font-bold rounded-md" style={{ color: COLORES_CATEGORIAS[tr.category] || '#94a3b8', backgroundColor: `${COLORES_CATEGORIAS[tr.category] || '#94a3b8'}20` }}>
