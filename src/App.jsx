@@ -155,7 +155,11 @@ const translations = {
     language: "Idioma", currency: "Moneda", startApp: "Entrar con Google",
     greeting: "Hola",
     balance: "Balance", income: "Ingresos", expenses: "Egresos",
-    savingsGoal: "Meta Ahorro", progress: "Progreso",
+    savingsGoal: "Meta Ahorro", progress: "Progreso", savedSoFar: "Llevas ahorrado",
+    breakPiggy: "Romper cochino", goalReached: "🎉 ¡Lo lograste! 🎉",
+    confirmBreakTitle: "Romper Cochino", confirmBreakMsg: "Ingresa el monto que deseas retirar de tus ahorros. Este dinero se sumará a tu balance disponible.",
+    withdrawAmount: "Monto a retirar", withdrawError: "Monto inválido o superior al ahorro",
+    piggyBroken: "¡Ahorros retirados! Dinero añadido al balance.", piggyBreakConcept: "Ahorros retirados",
     newRecord: "Nuevo Registro", editRecord: "Editar Registro", expenseType: "Gasto", incomeType: "Ingreso",
     concept: "Concepto", conceptPlaceholder: "Ej. Compra de supermercado",
     amount: "Monto", date: "Fecha", category: "Categoría", saveBtn: "Guardar", updateBtn: "Actualizar",
@@ -203,7 +207,11 @@ const translations = {
     language: "Language", currency: "Currency", startApp: "Sign in with Google",
     greeting: "Hello",
     balance: "Balance", income: "Income", expenses: "Expenses",
-    savingsGoal: "Savings Goal", progress: "Progress",
+    savingsGoal: "Savings Goal", progress: "Progress", savedSoFar: "Saved so far",
+    breakPiggy: "Break Piggy Bank", goalReached: "🎉 Goal Reached! 🎉",
+    confirmBreakTitle: "Break Piggy Bank", confirmBreakMsg: "Enter the amount you wish to withdraw from your savings. This money will be added to your available balance.",
+    withdrawAmount: "Amount to withdraw", withdrawError: "Invalid amount or exceeds savings",
+    piggyBroken: "Savings withdrawn! Money added to balance.", piggyBreakConcept: "Savings withdrawn",
     newRecord: "New Record", editRecord: "Edit Record", expenseType: "Expense", incomeType: "Income",
     concept: "Description", conceptPlaceholder: "E.g. Groceries",
     amount: "Amount", date: "Date", category: "Category", saveBtn: "Save", updateBtn: "Update",
@@ -251,7 +259,11 @@ const translations = {
     language: "Idioma", currency: "Moeda", startApp: "Entrar com o Google",
     greeting: "Olá",
     balance: "Saldo", income: "Receitas", expenses: "Despesas",
-    savingsGoal: "Meta de Economia", progress: "Progresso",
+    savingsGoal: "Meta de Economia", progress: "Progresso", savedSoFar: "Você economizou",
+    breakPiggy: "Quebrar cofrinho", goalReached: "🎉 Você conseguiu! 🎉",
+    confirmBreakTitle: "Retirar Poupança", confirmBreakMsg: "Insira o valor que deseja retirar de suas economias. Este dinheiro será adicionado ao seu saldo disponível.",
+    withdrawAmount: "Valor a retirar", withdrawError: "Valor inválido ou superior à poupança",
+    piggyBroken: "Poupança retirada! Dinheiro adicionado ao saldo.", piggyBreakConcept: "Poupança retirada",
     newRecord: "Novo Registro", editRecord: "Editar Registro", expenseType: "Despesa", incomeType: "Receita",
     concept: "Descrição", conceptPlaceholder: "Ex. Supermercado",
     amount: "Valor", date: "Data", category: "Categoria", saveBtn: "Salvar", updateBtn: "Atualizar",
@@ -371,6 +383,7 @@ export default function App() {
   const [budgets, setBudgets] = useState({});
   const [isEditingMeta, setIsEditingMeta] = useState(false);
   const [tempMeta, setTempMeta] = useState("");
+  const [breakAmount, setBreakAmount] = useState(""); // NUEVO ESTADO PARA EL MONTO A ROMPER
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
@@ -603,7 +616,12 @@ export default function App() {
   }, [transactions, anioActual]);
 
   const totalAhorrado = useMemo(() => {
-    return transactions.filter(tr => tr.category === 'Ahorro').reduce((sum, tr) => sum + tr.amount, 0);
+    return transactions.reduce((sum, tr) => {
+      if (tr.category === 'Ahorro') {
+        return tr.type === 'egreso' ? sum + tr.amount : sum - tr.amount;
+      }
+      return sum;
+    }, 0);
   }, [transactions]);
 
   const progresoAhorro = useMemo(() => {
@@ -778,6 +796,44 @@ export default function App() {
     if (!isNaN(val) && val >= 0) {
       setBudgets(prev => ({ ...prev, [cat]: convertToUSD(val) }));
     } 
+  };
+
+  // NUEVA FUNCIÓN PARA ROMPER EL COCHINITO CON MONTO ESPECÍFICO
+  const confirmBreakPiggy = (e) => {
+    e.preventDefault();
+    if (totalAhorrado <= 0) return;
+    
+    const amountToWithdrawLocal = parseFloat(breakAmount);
+    if (isNaN(amountToWithdrawLocal) || amountToWithdrawLocal <= 0) {
+      showToast(t('withdrawError'), 'error');
+      return;
+    }
+
+    const amountToWithdrawUSD = convertToUSD(amountToWithdrawLocal);
+
+    if (amountToWithdrawUSD > totalAhorrado + 0.01) {
+      showToast(t('withdrawError'), 'error');
+      return;
+    }
+
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const dateString = now.toISOString().split('T')[0];
+
+    const newTransaction = {
+      id: Date.now(),
+      type: 'ingreso', 
+      amount: Math.min(amountToWithdrawUSD, totalAhorrado), 
+      category: 'Ahorro',
+      date: dateString,
+      concept: t('piggyBreakConcept'),
+      createdAt: timeString
+    };
+
+    setTransactions(prev => [newTransaction, ...prev]);
+    showToast(t('piggyBroken'), 'success');
+    setActiveModal(null);
+    setBreakAmount("");
   };
 
   /* ---------- GENERADOR DE PDF AVANZADO ASÍNCRONO ---------- */
@@ -1074,6 +1130,44 @@ export default function App() {
       )}
 
       {/* ---------------- MODALES ---------------- */}
+
+      {/* MODAL ROMPER COCHINITO */}
+      {activeModal === 'breakPiggy' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 no-print">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl relative text-center">
+            <div className="w-16 h-16 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 mt-2">
+              <PiggyBank size={32} />
+            </div>
+            <h2 className="text-2xl font-bold mb-2 text-slate-800">{t('confirmBreakTitle')}</h2>
+            <p className="text-slate-500 font-medium mb-4">{t('confirmBreakMsg')}</p>
+            
+            <form onSubmit={confirmBreakPiggy}>
+              <div className="mb-6 text-left">
+                <label className="text-xs font-bold text-slate-500 uppercase ml-1">
+                  {t('withdrawAmount')} (Máx: {formatCurrency(totalAhorrado)})
+                </label>
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  min="0.01"
+                  max={convertFromUSD(totalAhorrado).toFixed(2)}
+                  value={breakAmount} 
+                  onChange={(e) => setBreakAmount(e.target.value)} 
+                  placeholder="0.00" 
+                  className="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 font-semibold text-slate-800" 
+                  required 
+                  autoFocus
+                />
+              </div>
+              
+              <div className="flex gap-3">
+                <button type="button" onClick={() => {setActiveModal(null); setBreakAmount('');}} className="flex-1 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition">{t('cancel')}</button>
+                <button type="submit" className="flex-1 py-3.5 bg-pink-600 text-white font-bold rounded-xl shadow-lg shadow-pink-500/30 hover:bg-pink-700 transition">{t('breakPiggy')}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* MODAL ELIMINAR TRANSACCIÓN */}
       {transactionToDelete && (
@@ -1408,15 +1502,30 @@ export default function App() {
             </div>
           </GlassCard>
 
+          {/* TARJETA META DE AHORRO CON CAMBIOS */}
           <GlassCard>
             <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('savingsGoal')}</p>
-              <div className="p-2 bg-purple-100 rounded-xl text-purple-600">
-                <Target size={18} />
+              <div>
+                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('savingsGoal')}</p>
+              </div>
+              <div className="flex gap-2">
+                {/* BOTÓN ROMPER COCHINITO */}
+                {totalAhorrado > 0 && (
+                  <button 
+                    onClick={() => openMenuModal('breakPiggy')} 
+                    title={t('breakPiggy')} 
+                    className="p-2 bg-pink-100 text-pink-600 rounded-xl hover:bg-pink-200 hover:scale-105 transition-all shadow-sm"
+                  >
+                    <PiggyBank size={18} />
+                  </button>
+                )}
+                <div className="p-2 bg-purple-100 rounded-xl text-purple-600">
+                  <Target size={18} />
+                </div>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 h-8">
+            <div className="flex items-center gap-2 h-8 mt-1">
               {isEditingMeta ? (
                 <div className="flex items-center gap-2 w-full">
                   <input
@@ -1428,18 +1537,35 @@ export default function App() {
                 </div>
               ) : (
                 <>
-                  <h2 className="text-xl font-bold text-slate-800">{formatCurrency(metaAhorro)}</h2>
+                  <h2 className="text-2xl font-bold text-slate-800">{formatCurrency(metaAhorro)}</h2>
                   <button onClick={iniciarEdicionMeta} className="text-slate-400 hover:text-purple-600 hover:bg-purple-100 p-1.5 rounded-md transition-colors">
                     <Pencil size={16} />
                   </button>
                 </>
               )}
             </div>
+
+            {/* MOVIDO AQUI: LO QUE LLEVAS HASTA AHORA */}
+            {totalAhorrado > 0 && (
+              <p className="text-sm font-bold text-blue-600 mt-1 animate-fade-in-up">
+                {t('savedSoFar')}: {formatCurrency(totalAhorrado)}
+              </p>
+            )}
             
-            <div className="w-full bg-slate-200/50 rounded-full h-2.5 mt-3 overflow-hidden">
-              <div className={`h-2.5 rounded-full transition-all duration-1000 ease-out ${progresoAhorro >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500'}`} style={{ width: `${progresoAhorro}%` }}></div>
+            <div className="w-full bg-slate-200/50 rounded-full h-2.5 mt-3 overflow-hidden relative">
+              <div className={`h-2.5 rounded-full transition-all duration-1000 ease-out ${progresoAhorro >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500'}`} style={{ width: `${Math.min(progresoAhorro, 100)}%` }}></div>
             </div>
-            <p className="text-xs font-semibold text-slate-500 mt-2 text-right">{t('progress')} {progresoAhorro.toFixed(1)}%</p>
+            
+            <div className="flex justify-between items-center mt-2">
+              <p className="text-xs font-semibold text-slate-500">{t('progress')} {progresoAhorro.toFixed(1)}%</p>
+            </div>
+
+            {/* MENSAJE MOTIVACIONAL CUANDO SE LLEGA A LA META */}
+            {progresoAhorro >= 100 && totalAhorrado > 0 && (
+              <p className="text-sm font-bold text-emerald-600 mt-2 text-center animate-pulse bg-emerald-50 py-1 rounded-md">
+                {t('goalReached')}
+              </p>
+            )}
           </GlassCard>
         </div>
 
