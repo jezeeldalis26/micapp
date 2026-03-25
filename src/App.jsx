@@ -275,7 +275,7 @@ const translations = {
     last7days: "Últimos 7 dias", last15days: "Últimos 15 dias", last30days: "Últimos 30 dias",
     last90days: "Últimos 90 dias", allTime: "Todo o histórico", generatePDF: "Gerar PDF",
     budgets: "Orçamentos por Categoria", budgetExceeded: "Orçamento excedido",
-    spentMore: "a mais que o mês passado", spentLess: "a menos que o mês passado", noLimit: "Sem limite",
+    spentMore: "a mais que o mês pasado", spentLess: "a menos que o mês pasado", noLimit: "Sem limite",
     errorLogin: "Erro ao iniciar sessão. Tente novamente.",
     errorSave: "Erro ao sincronizar com a nuvem.",
     errorPDF: "Ocorreu um problema ao gerar o PDF.",
@@ -325,22 +325,7 @@ const COLORES_CATEGORIAS = {
 };
 
 const DATOS_EJEMPLO = [];
-const RAW_SVG_LOGO = `<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"><defs><linearGradient id="Degradado_sin_nombre_7" data-name="Degradado sin nombre 7" x1="77.23" y1="488.48" x2="901.64" y2="488.48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4bd400"/><stop offset="1" stop-color="#f0ff15"/></linearGradient></defs><path d="m217.11,723.75c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.66,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.22-8.48-22.88-14.51-6.66-6.01-11.92-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c0-32.23,6.34-62.63,19.01-91.21,12.67-28.57,29.97-53.5,51.89-74.77,21.92-21.27,47.38-38.13,76.38-50.6,29.01-12.46,59.62-18.69,91.85-18.69s64.99,6.45,94.43,19.34c29.43,12.89,55.32,30.52,77.67,52.86,22.34-22.34,48.44-39.96,78.31-52.86,29.86-12.89,61.56-19.34,95.08-19.34s63.17,6.02,91.53,18.05c28.36,12.04,53.28,28.58,74.77,49.63,21.48,21.06,38.68,45.55,51.57,73.48,12.89,27.94,19.98,57.8,21.27,89.6,0,.87.1,1.83.32,2.9.21,1.08.32,2.05.32,2.9v302.3c0,9.46-1.83,18.37-5.48,26.75-3.66,8.38-8.6,15.58-14.83,21.59-6.23,6.02-13.44,10.86-21.59,14.51-8.17,3.66-16.98,5.48-26.43,5.48s-18.59-1.82-27.39-5.48c-8.82-3.65-16.44-8.48-22.89-14.51-6.45-6.01-11.6-13.21-15.47-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-304.24c-.44-13.75-3.44-26.43-9.02-38.03-5.59-11.6-13-21.59-22.24-29.97-9.25-8.38-19.77-14.93-31.58-19.66-11.83-4.72-24.61-7.09-38.35-7.09s-26.86,2.58-39.32,7.73c-12.47,5.16-23.32,12.15-32.55,20.95-9.25,8.81-16.55,19.13-21.92,30.94-5.38,11.83-8.06,24.6-8.06,38.35v301.02c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.67,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.23-8.48-22.88-14.51-6.67-6.01-11.93-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c-.43-13.75-3.33-26.53-8.7-38.35-5.38-11.81-12.57-21.92-21.59-30.3-9.03-8.38-19.56-14.93-31.58-19.66-12.04-4.72-24.93-7.09-38.68-7.09s-26.75,2.48-39,7.41c-12.25,4.94-22.99,11.82-32.23,20.63-9.25,8.81-16.55,19.01-21.92,30.62-5.38,11.6-8.06,24.07-8.06,37.38v302.95Z" fill="url(#Degradado_sin_nombre_7)" strokeWidth="0"/></svg>`;
-
-/* ---------------- COMPONENTES ---------------- */
-const GlassCard = ({ children, className = "" }) => (
-  <div className={`glass-panel rounded-3xl p-6 ${className}`}>{children}</div>
-);
-
-const CustomLogo = ({ className = "" }) => (
-  <svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000" className={className}>
-    <defs>
-      <linearGradient id="Degradado_sin_nombre_7" data-name="Degradado sin nombre 7" x1="77.23" y1="488.48" x2="901.64" y2="488.48" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stopColor="#4bd400"/>
-        <stop offset="1" stopColor="#f0ff15"/>
-      </linearGradient>
-    </defs>
-    <path d="m217.11,723.75c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.66,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.22-8.48-22.88-14.51-6.66-6.01-11.92-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c0-32.23,6.34-62.63,19.01-91.21,12.67-28.57,29.97-53.5,51.89-74.77,21.92-21.27,47.38-38.13,76.38-50.6,29.01-12.46,59.62-18.69,91.85-18.69s64.99,6.45,94.43,19.34c29.43,12.89,55.32,30.52,77.67,52.86,22.34-22.34,48.44-39.96,78.31-52.86,29.86-12.89,61.56-19.34,95.08-19.34s63.17,6.02,91.53,18.05c28.36,12.04,53.28,28.58,74.77,49.63,21.48,21.06,38.68,45.55,51.57,73.48,12.89,27.94,19.98,57.8,21.27,89.6,0,.87.1,1.83.32,2.9.21,1.08.32,2.05.32,2.9v302.3c0,9.46-1.83,18.37-5.48,26.75-3.66,8.38-8.6,15.58-14.83,21.59-6.23,6.02-13.44,10.86-21.59,14.51-8.17,3.66-16.98,5.48-26.43,5.48s-18.59-1.82-27.39-5.48c-8.82-3.65-16.44-8.48-22.89-14.51-6.45-6.01-11.6-13.21-15.47-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-304.24c-.44-13.75-3.44-26.43-9.02-38.03-5.59-11.6-13-21.59-22.24-29.97-9.25-8.38-19.77-14.93-31.58-19.66-11.83-4.72-24.61-7.09-38.35-7.09s-26.86,2.58-39.32,7.73c-12.47,5.16-23.32,12.15-32.55,20.95-9.25,8.81-16.55,19.13-21.92,30.94-5.38,11.83-8.06,24.6-8.06,38.35v301.02c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.67,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.23-8.48-22.88-14.51-6.67-6.01-11.93-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c-.43-13.75-3.33-26.53-8.7-38.35-5.38-11.81-12.57-21.92-21.59-30.3-9.03-8.38-19.56-14.93-31.58-19.66-12.04-4.72-24.93-7.09-38.68-7.09s-26.75,2.48-39,7.41c-12.25,4.94-22.99,11.82-32.23,20.63-9.25,8.81-16.55,19.01-21.92,30.62-5.38,11.6-8.06,24.07-8.06,37.38v302.95Z" fill="url(#Degradado_sin_nombre_7)" strokeWidth="0"/>
+const RAW_SVG_LOGO = `<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"><defs><linearGradient id="Degradado_sin_nombre_7" data-name="Degradado sin nombre 7" x1="77.23" y1="488.48" x2="901.64" y2="488.48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4bd400"/><stop offset="1" stop-color="#f0ff15"/></linearGradient></defs><path d="m217.11,723.75c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.66,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.22-8.48-22.88-14.51-6.66-6.01-11.92-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c0-32.23,6.34-62.63,19.01-91.21,12.67-28.57,29.97-53.5,51.89-74.77,21.92-21.27,47.38-38.13,76.38-50.6,29.01-12.46,59.62-18.69,91.85-18.69s64.99,6.45,94.43,19.34c29.43,12.89,55.32,30.52,77.67,52.86,22.34-22.34,48.44-39.96,78.31-52.86,29.86-12.89,61.56-19.34,95.08-19.34s63.17,6.02,91.53,18.05c28.36,12.04,53.28,28.58,74.77,49.63,21.48,21.06,38.68,45.55,51.57,73.48,12.89,27.94,19.98,57.8,21.27,89.6,0,.87.1,1.83.32,2.9.21,1.08.32,2.05.32,2.9v302.3c0,9.46-1.83,18.37-5.48,26.75-3.66,8.38-8.6,15.58-14.83,21.59-6.23,6.02-13.44,10.86-21.59,14.51-8.17,3.66-16.98,5.48-26.43,5.48s-18.59-1.82-27.39-5.48c-8.82-3.65-16.44-8.48-22.89-14.51-6.45-6.01-11.6-13.21-15.47-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-304.24c-.44-13.75-3.44-26.43-9.02-38.03-5.59-11.6-13-21.59-22.24-29.97-9.25-8.38-19.77-14.93-31.58-19.66-11.83-4.72-24.61-7.09-38.35-7.09s-26.86,2.58-39.32,7.73c-12.47,5.16-23.32,12.15-32.55,20.95-9.25,8.81-16.55,19.13-21.92,30.94-5.38,11.83-8.06,24.6-8.06,38.35v301.02c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.67,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.23-8.48-22.88-14.51-6.67-6.01-11.93-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c-.43-13.75-3.33-26.53-8.7-38.35-5.38-11.81-12.57-21.92-21.59-30.3-9.03-8.38-19.56-14.93-31.58-19.66-12.04-4.72-24.93-7.09-38.68-7.09s-26.75,2.48-39,7.41c-12.25,4.94-22.99,11.82-32.23,20.63-9.25,8.81-16.55,19.01-21.92,30.62-5.38,11.6-8.06,24.07-8.06,37.38v302.95Z" fill="url(#Degradado_sin_nombre_7)" strokeWidth="0"/>
   </svg>
 );
 
@@ -351,6 +336,21 @@ const GoogleLogo = () => (
     <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
     <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
   </svg>
+);
+
+/* ---------------- COMPONENTES FALTANTES AÑADIDOS A CONTINUACIÓN ---------------- */
+const CustomLogo = ({ className = "" }) => (
+  <img 
+    src={`data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(RAW_SVG_LOGO)))}`} 
+    className={className} 
+    alt="Micapp Logo" 
+  />
+);
+
+const GlassCard = ({ children, className = "" }) => (
+  <div className={`glass-panel p-5 sm:p-6 rounded-3xl ${className}`}>
+    {children}
+  </div>
 );
 
 /* ---------------- APP ---------------- */
@@ -604,10 +604,14 @@ export default function App() {
     return { ingresos, egresos, balance: ingresos - egresos };
   }, [transactions, anioActual]);
 
+  const totalAhorrado = useMemo(() => {
+    return transactions.filter(tr => tr.category === 'Ahorro').reduce((sum, tr) => sum + tr.amount, 0);
+  }, [transactions]);
+
   const progresoAhorro = useMemo(() => {
     if (metaAhorro === 0) return 0;
-    return Math.max(0, Math.min(100, (balanceHistorico / metaAhorro) * 100));
-  }, [balanceHistorico, metaAhorro]);
+    return Math.max(0, Math.min(100, (totalAhorrado / metaAhorro) * 100));
+  }, [totalAhorrado, metaAhorro]);
 
   const gastosPorCategoria = useMemo(() => {
     const gastos = currentMonthTransactions.filter(tr => tr.type === 'egreso');
@@ -707,7 +711,6 @@ export default function App() {
       
       setTransactions(prev => [newTransaction, ...prev]);
 
-      // FIX QUIRÚRGICO: Evitar choque de notificaciones
       if ((transactions.length + 1) % 5 === 0) {
         showToast("Reporte actualizado, descarga tu PDF ahora", 'warning');
       } else {
@@ -766,7 +769,6 @@ export default function App() {
     setIsEditingMeta(true);
   };
 
-  // FIX QUIRÚRGICO: Los decimales del presupuesto se aplican al terminar de tipear (onBlur) para que no haya conflictos
   const handleBudgetChange = (cat, valueLocal) => {
     if (valueLocal === "") {
       const newB = { ...budgets };
@@ -811,11 +813,22 @@ export default function App() {
         if (tr.type === 'ingreso') inTot += tr.amount;
         else outTot += tr.amount;
 
+        const isAhorro = tr.category === 'Ahorro';
+        const isIngreso = tr.type === 'ingreso';
+
         const rowData = [
-          tr.date.split('-').reverse().join('/'),
+          `${tr.date.split('-').reverse().join('/')}${tr.createdAt ? ` ${tr.createdAt}` : ''}`,
           tr.concept,
           translateCategory(tr.category, currentLang),
-          `${tr.type === 'ingreso' ? '+' : '-'}${formatCurrency(tr.amount)}`
+          {
+            content: `${isIngreso ? '+' : '-'}${formatCurrency(tr.amount)}`,
+            styles: {
+              fillColor: isAhorro ? [254, 243, 199] : isIngreso ? [209, 250, 229] : [255, 228, 230],
+              textColor: isAhorro ? [180, 83, 9] : isIngreso ? [5, 150, 105] : [225, 29, 72],
+              fontStyle: 'bold',
+              halign: 'right'
+            }
+          }
         ];
         tableRows.push(rowData);
       });
@@ -834,7 +847,7 @@ export default function App() {
             
             doc.addImage(pngData, 'PNG', 14, 10, 10, 10);
             doc.setFontSize(10);
-            doc.setTextColor(30, 41, 59);
+            doc.setTextColor(71, 85, 105);
             doc.setFont('helvetica', 'bold');
             doc.text("Micapp", 14, 25);
             resolve();
@@ -883,13 +896,9 @@ export default function App() {
       doc.text(t('totalExpenses').toUpperCase(), 140, 61);
 
       doc.setFontSize(14);
-      doc.setTextColor(balTot >= 0 ? 37 : 225, balTot >= 0 ? 99 : 29, balTot >= 0 ? 235 : 72); 
+      doc.setTextColor(71, 85, 105); 
       doc.text(formatCurrency(balTot), 14, 68);
-      
-      doc.setTextColor(16, 185, 129);
       doc.text(formatCurrency(inTot), 80, 68);
-      
-      doc.setTextColor(225, 29, 72);
       doc.text(formatCurrency(outTot), 140, 68);
 
       autoTable(doc, {
@@ -897,7 +906,7 @@ export default function App() {
         body: tableRows,
         startY: 81,
         theme: 'grid',
-        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+        headStyles: { fillColor: [148, 163, 184], textColor: 255, fontStyle: 'bold' },
         styles: { font: 'helvetica', fontSize: 10, textColor: [51, 65, 85] },
         alternateRowStyles: { fillColor: [248, 250, 252] },
       });
@@ -1025,6 +1034,10 @@ export default function App() {
               <GoogleLogo />
               {translations[currentLang].startApp}
             </button>
+
+            <p className="text-center text-[10px] text-slate-400 opacity-70 mt-3">
+              Desarrollado por Amur digital
+            </p>
             
             <p className="text-center text-xs text-slate-500 mt-5">
               Al ingresar a Micapp aceptas nuestros <button type="button" onClick={(e) => { e.preventDefault(); setActiveModal('terms'); }} className="text-blue-600 font-bold hover:underline underline">términos y condiciones</button>
@@ -1197,26 +1210,20 @@ export default function App() {
               <PiggyBank className="text-blue-600" size={28} /> {t('budgets')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {CATEGORIAS_EGRESO.map(cat => {
+              {CATEGORIAS_EGRESO.filter(c => c !== 'Ahorro').map(cat => {
                 const spent = gastosPorCategoria.find(g => g.name === cat)?.value || 0;
                 const limit = budgets[cat] ? parseFloat((convertFromUSD(budgets[cat])).toFixed(2)) : ''; 
                 const percentage = limit > 0 ? (convertFromUSD(spent) / limit) * 100 : 0;
-                const isAhorro = cat === 'Ahorro';
                 
                 let barColor = 'bg-blue-500';
-                if (isAhorro) {
-                    barColor = percentage >= 100 ? 'bg-emerald-500' : 'bg-blue-400';
-                } else {
-                    if (percentage > 100) barColor = 'bg-rose-500';
-                    else if (percentage > 80) barColor = 'bg-amber-500';
-                    else barColor = 'bg-emerald-500';
-                }
+                if (percentage > 100) barColor = 'bg-rose-500';
+                else if (percentage > 80) barColor = 'bg-amber-500';
+                else barColor = 'bg-emerald-500';
 
                 return (
                   <div key={cat} className="p-4 bg-slate-50 border border-slate-100 rounded-xl hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-center mb-2">
                         <span className="font-semibold text-slate-700 flex items-center gap-2">
-                          {isAhorro && <PiggyBank size={16} className="text-emerald-500"/>}
                           {translateCategory(cat, currentLang)}
                         </span>
                         <input 
@@ -1237,7 +1244,7 @@ export default function App() {
                         <span>{formatCurrency(spent)}</span>
                         <span>{limit > 0 ? `${percentage.toFixed(0)}%` : ''}</span>
                     </div>
-                    {!isAhorro && percentage > 100 && (
+                    {percentage > 100 && (
                         <p className="text-rose-500 text-xs mt-2 flex items-center gap-1 font-semibold animate-pulse"><AlertTriangle size={14}/> {t('budgetExceeded')}</p>
                     )}
                   </div>
@@ -1540,7 +1547,6 @@ export default function App() {
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center min-h-[300px] text-slate-400">
-                {/* FIX QUIRÚRGICO: Usamos PieChartIcon de lucide-react para evitar que recharts cuelgue la app (White Screen) al no recibir data */}
                 <PieChartIcon size={64} className="mb-4 opacity-50" />
                 <p className="font-medium">{t('noExpenses')}</p>
               </div>
@@ -1580,12 +1586,12 @@ export default function App() {
                   <div key={tr.id} className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${bgClass} transition-colors`}>
                     <div className="flex items-center gap-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                        <span style={{ color: profile.theme === 'dark' ? '#f8fafc' : '#1e293b', fontSize: '14px', fontWeight: 'bold' }}>
                           {tr.concept}
                         </span>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                            {tr.date.split('-').reverse().join('/')} {tr.createdAt ? `• ${tr.createdAt}` : ''}
+                          <span style={{ color: profile.theme === 'dark' ? '#94a3b8' : '#64748b', fontSize: '12px', fontWeight: '600' }}>
+                            {tr.date.split('-').reverse().join('/')} {tr.createdAt && `• ${tr.createdAt}`}
                           </span>
                           <span className="px-2 py-0.5 text-[10px] font-bold rounded-md" style={{ color: COLORES_CATEGORIAS[tr.category] || '#94a3b8', backgroundColor: `${COLORES_CATEGORIAS[tr.category] || '#94a3b8'}20` }}>
                             {translateCategory(tr.category, currentLang)}
