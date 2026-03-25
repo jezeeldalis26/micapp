@@ -823,8 +823,8 @@ export default function App() {
           {
             content: `${isIngreso ? '+' : '-'}${formatCurrency(tr.amount)}`,
             styles: {
-              fillColor: isAhorro ? [254, 243, 199] : isIngreso ? [209, 250, 229] : [255, 228, 230],
-              textColor: isAhorro ? [180, 83, 9] : isIngreso ? [5, 150, 105] : [225, 29, 72],
+              fillColor: isAhorro ? [254, 252, 232] : isIngreso ? [240, 253, 244] : [255, 241, 242],
+              textColor: isAhorro ? [161, 98, 7] : isIngreso ? [21, 128, 61] : [225, 29, 72],
               fontStyle: 'bold',
               halign: 'right'
             }
@@ -847,7 +847,7 @@ export default function App() {
             
             doc.addImage(pngData, 'PNG', 14, 10, 10, 10);
             doc.setFontSize(10);
-            doc.setTextColor(71, 85, 105);
+            doc.setTextColor(100, 116, 139);
             doc.setFont('helvetica', 'bold');
             doc.text("Micapp", 14, 25);
             resolve();
@@ -862,7 +862,7 @@ export default function App() {
       });
 
       doc.setFontSize(20);
-      doc.setTextColor(30, 41, 59);
+      doc.setTextColor(100, 116, 139); // Gris para el título principal
       doc.setFont('helvetica', 'normal');
       doc.text(t('financialReport').toUpperCase(), 14, 38);
       
@@ -873,19 +873,19 @@ export default function App() {
       }
 
       doc.setFontSize(11);
-      doc.setTextColor(100, 116, 139);
+      doc.setTextColor(148, 163, 184); // Gris más claro
       doc.text(`${t('period')}: ${rangeText}`, 14, 46);
       
       doc.setFontSize(12);
-      doc.setTextColor(30, 41, 59);
+      doc.setTextColor(100, 116, 139);
       doc.text(`${profile.firstName} ${profile.lastName}`, 140, 38);
       if(profile.email) {
         doc.setFontSize(10);
-        doc.setTextColor(100, 116, 139);
+        doc.setTextColor(148, 163, 184);
         doc.text(profile.email, 140, 43);
       }
 
-      doc.setDrawColor(226, 232, 240);
+      doc.setDrawColor(226, 232, 240); // Gris línea
       doc.setLineWidth(0.5);
       doc.line(14, 51, 196, 51);
 
@@ -907,7 +907,7 @@ export default function App() {
         startY: 81,
         theme: 'grid',
         headStyles: { fillColor: [148, 163, 184], textColor: 255, fontStyle: 'bold' },
-        styles: { font: 'helvetica', fontSize: 10, textColor: [51, 65, 85] },
+        styles: { font: 'helvetica', fontSize: 10, textColor: [71, 85, 105] }, // Textos en gris 
         alternateRowStyles: { fillColor: [248, 250, 252] },
       });
 
@@ -1035,7 +1035,8 @@ export default function App() {
               {translations[currentLang].startApp}
             </button>
 
-            <p className="text-center text-[10px] text-slate-400 opacity-70 mt-3">
+            {/* Ajuste Quirúrgico 1: Texto extremadamente pequeño y sutil debajo del botón */}
+            <p className="text-center text-[9px] text-slate-400 opacity-40 mt-2">
               Desarrollado por Amur digital
             </p>
             
@@ -1586,11 +1587,12 @@ export default function App() {
                   <div key={tr.id} className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${bgClass} transition-colors`}>
                     <div className="flex items-center gap-4">
                       <div className="flex flex-col">
-                        <span style={{ color: profile.theme === 'dark' ? '#f8fafc' : '#1e293b', fontSize: '14px', fontWeight: 'bold' }}>
+                        {/* Ajuste Quirúrgico 4: Se reemplazaron estilos inline problemáticos por clases nativas de Tailwind */}
+                        <span className="text-slate-800 text-[14px] font-bold">
                           {tr.concept}
                         </span>
                         <div className="flex items-center gap-2 mt-1">
-                          <span style={{ color: profile.theme === 'dark' ? '#94a3b8' : '#64748b', fontSize: '12px', fontWeight: '600' }}>
+                          <span className="text-slate-500 text-[12px] font-semibold">
                             {tr.date.split('-').reverse().join('/')} {tr.createdAt && `• ${tr.createdAt}`}
                           </span>
                           <span className="px-2 py-0.5 text-[10px] font-bold rounded-md" style={{ color: COLORES_CATEGORIAS[tr.category] || '#94a3b8', backgroundColor: `${COLORES_CATEGORIAS[tr.category] || '#94a3b8'}20` }}>
