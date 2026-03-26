@@ -10,7 +10,7 @@ import autoTable from 'jspdf-autotable';
 // Asegúrate de tener este archivo './firebase' en tu proyecto exportando auth, db y googleProvider.
 import { auth, db, googleProvider } from './firebase'; 
 
-import { signInWithPopup, onAuthStateChanged, signOut, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithPopup, onAuthStateChanged, signOut, signInWithCredential } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Capacitor } from '@capacitor/core';
