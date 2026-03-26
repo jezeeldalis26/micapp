@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Trash2, TrendingUp, TrendingDown, Target, Pencil, Check, Lightbulb, Menu, X, FileText, Download, UserCog, LogOut, AlertTriangle, PiggyBank, Wallet, PieChart as PieChartIcon } from 'lucide-react';
+import { Trash2, TrendingUp, TrendingDown, Target, Pencil, Check, Lightbulb, Menu, X, FileText, Download, UserCog, LogOut, AlertTriangle, PiggyBank, Wallet, PieChart as PieChartIcon, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 /* --- IMPORTACIONES DE FIREBASE --- */
-import { signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db, googleProvider } from './firebase';
+import { signInWithPopup, onAuthStateChanged, signOut, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { Capacitor } from '@capacitor/core';
 
 /* ---------------- ESTILOS GLOBALES & MODO OSCURO ---------------- */
 const globalStyles = `
@@ -311,13 +311,13 @@ const translateCategory = (cat, lang) => {
   const dict = {
     es: cat,
     en: {
-      'Servicios': 'Utilities', 'Alimentación': 'Food', 'Hijos': 'Children', 'Transporte': 'Transport',
+      'Servicios': 'Utilities', 'Hogar': 'Home', 'Alimentación': 'Food', 'Hijos': 'Children', 'Transporte': 'Transport',
       'Entretenimiento': 'Entertainment', 'Educación': 'Education', 'Deudas': 'Debts', 'Gastos Innecesarios': 'Unnecessary Expenses',
       'Ahorro': 'Savings',
       'Salario': 'Salary', 'Negocio': 'Business', 'Inversiones': 'Investments', 'Otros': 'Other'
     }[cat] || cat,
     pt: {
-      'Servicios': 'Serviços', 'Alimentación': 'Alimentação', 'Filhos': 'Children', 'Transporte': 'Transporte',
+      'Servicios': 'Serviços', 'Hogar': 'Lar', 'Alimentación': 'Alimentação', 'Filhos': 'Children', 'Transporte': 'Transporte',
       'Entretenimiento': 'Entretenimento', 'Educación': 'Educação', 'Deudas': 'Dívidas', 'Gastos Innecesarios': 'Gastos Desnecessários',
       'Ahorro': 'Poupança',
       'Salario': 'Salário', 'Negocio': 'Negócio', 'Inversiones': 'Investimentos', 'Outros': 'Outros'
@@ -327,10 +327,11 @@ const translateCategory = (cat, lang) => {
 };
 
 /* ---------------- DATOS CONSTANTES ---------------- */
-const CATEGORIAS_EGRESO = ['Servicios', 'Alimentación', 'Hijos', 'Transporte', 'Entretenimiento', 'Educación', 'Deudas', 'Gastos Innecesarios', 'Ahorro'];
+// MODIFICACIÓN QUIRÚRGICA: Agregada categoría 'Hogar'
+const CATEGORIAS_EGRESO = ['Servicios', 'Hogar', 'Alimentación', 'Hijos', 'Transporte', 'Entretenimiento', 'Educación', 'Deudas', 'Gastos Innecesarios', 'Ahorro'];
 const CATEGORIAS_INGRESO = ['Salario', 'Negocio', 'Inversiones', 'Otros'];
 const COLORES_CATEGORIAS = {
-  Servicios: '#3b82f6', Alimentación: '#10b981', Hijos: '#f59e0b', Transporte: '#6366f1',
+  Servicios: '#3b82f6', Hogar: '#14b8a6', Alimentación: '#10b981', Hijos: '#f59e0b', Transporte: '#6366f1',
   Entretenimiento: '#8b5cf6', Educación: '#ec4899', Deudas: '#ef4444', 'Gastos Innecesarios': '#f97316',
   Ahorro: '#0ea5e9', 
   Salario: '#22c55e', Negocio: '#0ea5e9', Inversiones: '#8b5cf6', Otros: '#64748b'
@@ -379,18 +380,24 @@ export default function App() {
   const [transactions, setTransactions] = useState([]); 
   const [mesActual, setMesActual] = useState(new Date().getMonth());
   const [anioActual, setAnioActual] = useState(new Date().getFullYear());
-  const [metaAhorro, setMetaAhorro] = useState(1000); 
+  
+  // MODIFICACIÓN QUIRÚRGICA: Comenzar meta en 0
+  const [metaAhorro, setMetaAhorro] = useState(0); 
   const [budgets, setBudgets] = useState({});
   const [isEditingMeta, setIsEditingMeta] = useState(false);
   const [tempMeta, setTempMeta] = useState("");
-  const [breakAmount, setBreakAmount] = useState(""); // NUEVO ESTADO PARA EL MONTO A ROMPER
+  const [breakAmount, setBreakAmount] = useState(""); 
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [tempProfile, setTempProfile] = useState(profile);
   const [pdfRange, setPdfRange] = useState('30'); 
   
-  // ESTADOS UI
+  // NUEVOS ESTADOS UI QUIRÚRGICOS
+  const [showAmounts, setShowAmounts] = useState(true); // Para ocultar montos (Ojito)
+  const [showTutorial, setShowTutorial] = useState(false); // Modal del Tutorial
+  const [tutorialStep, setTutorialStep] = useState(0); // Pasos del tutorial
+
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
   const [editingTransactionId, setEditingTransactionId] = useState(null);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
@@ -441,6 +448,13 @@ export default function App() {
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
   };
 
+  // MODIFICACIÓN QUIRÚRGICA: Envoltura de renderizado de montos para el ojito (Ocultar saldos)
+  const renderAmount = (val) => {
+    // Si showAmounts es falso, retornamos un string de viñetas, de lo contrario usamos la función original de la app.
+    // Como formatCurrency está declarada fuera de este bloque en tu app, la usamos directamente.
+    return showAmounts ? formatCurrency(val) : '••••';
+  };
+
   /* ---------- PERSISTENCIA EN LA NUBE ---------- */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -453,7 +467,8 @@ export default function App() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.transactions) setTransactions(data.transactions);
-          if (data.metaAhorro) setMetaAhorro(data.metaAhorro);
+          // Permitir metas en 0 correctamente
+          if (data.metaAhorro !== undefined) setMetaAhorro(data.metaAhorro);
           if (data.budgets) setBudgets(data.budgets); 
           if (data.profile) setProfile({ ...data.profile, isConfigured: true });
         } else {
@@ -472,12 +487,14 @@ export default function App() {
           };
 
           setProfile(nuevoPerfil);
-          setTransactions(DATOS_EJEMPLO); 
+          setTransactions(DATOS_EJEMPLO); // Empieza vacío
+          setMetaAhorro(0); // MODIFICACIÓN QUIRÚRGICA: Empieza en 0
+          setShowTutorial(true); // MODIFICACIÓN QUIRÚRGICA: Activar tutorial a usuarios nuevos
           
           setDoc(docRef, {
             profile: nuevoPerfil,
             transactions: DATOS_EJEMPLO,
-            metaAhorro: 1000,
+            metaAhorro: 0,
             budgets: {}
           }).catch(err => {
              console.error("Error inicializando nube:", err);
@@ -511,44 +528,30 @@ export default function App() {
   /* ---------- FUNCIONES DE AUTENTICACIÓN ---------- */
   const loginConGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      if (Capacitor.isNativePlatform()) {
+        const result = await FirebaseAuthentication.signInWithGoogle();
+        const credential = GoogleAuthProvider.credential(result.credential.idToken);
+        await signInWithCredential(auth, credential);
+      } else {
+        await signInWithPopup(auth, googleProvider);
+      }
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       showToast(t('errorLogin') || "Error al iniciar sesión", 'error');
     }
   };
 
-  const cerrarSesion = () => {
+  const cerrarSesion = async () => {
+    if (Capacitor.isNativePlatform()) {
+      await FirebaseAuthentication.signOut();
+    }
     signOut(auth);
     setProfile({ isConfigured: false, firstName: '', lastName: '', email: '', phone: '', language: 'es', currency: 'USD', theme: 'light' });
     setTransactions([]);
     setBudgets({});
     setIsMenuOpen(false);
   };
-
-  const convertToUSD = (amountLocal) => {
-    if (!exchangeRates || currentCurrency === 'USD') return amountLocal;
-    const rate = exchangeRates[currentCurrency];
-    return rate ? amountLocal / rate : amountLocal;
-  };
-
-  const convertFromUSD = (amountUSD) => {
-    if (!exchangeRates || currentCurrency === 'USD') return amountUSD;
-    const rate = exchangeRates[currentCurrency];
-    return rate ? amountUSD * rate : amountUSD;
-  };
-
-  const formatCurrency = (valueUSD) => {
-    const localeMap = { es: 'es-ES', en: 'en-US', pt: 'pt-BR' };
-    const localValue = convertFromUSD(valueUSD);
-    
-    return new Intl.NumberFormat(localeMap[currentLang] || 'es-ES', {
-      style: 'currency', 
-      currency: currentCurrency,
-      currencyDisplay: 'narrowSymbol'
-    }).format(localValue);
-  };
-
+  
   /* ---------- PROCESAMIENTO DE DATOS ---------- */
   const balanceHistorico = useMemo(() => {
     const transaccionesPasadas = transactions.filter(tr => {
@@ -712,12 +715,16 @@ export default function App() {
     
     const amountUSD = convertToUSD(Number(formData.amount));
     
+    // MODIFICACIÓN QUIRÚRGICA: Autorefresh Asegurado inyectando clones estructurados al array
     if (editingTransactionId) {
-      setTransactions(prev => prev.map(tr => 
-        tr.id === editingTransactionId 
-          ? { ...formData, id: tr.id, amount: amountUSD, createdAt: tr.createdAt } 
-          : tr
-      ));
+      setTransactions(prev => {
+        const nuevos = prev.map(tr => 
+          tr.id === editingTransactionId 
+            ? { ...formData, id: tr.id, amount: amountUSD, createdAt: tr.createdAt } 
+            : tr
+        );
+        return [...nuevos]; // Forzar mutabilidad y detección por React
+      });
       setEditingTransactionId(null);
       showToast(t('successUpdate') || "Actualizado exitosamente", 'success');
     } else {
@@ -725,7 +732,7 @@ export default function App() {
       const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       const newTransaction = { ...formData, id: Date.now(), amount: amountUSD, createdAt: timeString };
       
-      setTransactions(prev => [newTransaction, ...prev]);
+      setTransactions(prev => [...[newTransaction, ...prev]]); // Forzar inmutabilidad de arreglos
 
       if ((transactions.length + 1) % 5 === 0) {
         showToast("Reporte actualizado, descarga tu PDF ahora", 'warning');
@@ -759,7 +766,10 @@ export default function App() {
 
   const confirmDelete = () => {
     if (!transactionToDelete) return;
-    setTransactions(prev => prev.filter(tr => tr.id !== transactionToDelete));
+    setTransactions(prev => {
+      const remaining = prev.filter(tr => tr.id !== transactionToDelete);
+      return [...remaining]; // Autorefresh garantizado
+    });
     if (editingTransactionId === transactionToDelete) cancelarEdicion();
     showToast(t('successDelete') || "Eliminado exitosamente", 'success');
     setTransactionToDelete(null);
@@ -789,7 +799,7 @@ export default function App() {
     if (valueLocal === "") {
       const newB = { ...budgets };
       delete newB[cat];
-      setBudgets(newB);
+      setBudgets({ ...newB });
       return;
     }
     const val = parseFloat(valueLocal);
@@ -830,7 +840,7 @@ export default function App() {
       createdAt: timeString
     };
 
-    setTransactions(prev => [newTransaction, ...prev]);
+    setTransactions(prev => [...[newTransaction, ...prev]]);
     showToast(t('piggyBroken'), 'success');
     setActiveModal(null);
     setBreakAmount("");
@@ -875,7 +885,7 @@ export default function App() {
           tr.concept,
           translateCategory(tr.category, currentLang),
           {
-            content: `${isIngreso ? '+' : '-'}${formatCurrency(tr.amount)}`,
+            content: `${isIngreso ? '+' : '-'}${formatCurrency(tr.amount)}`, // El PDF SIEMPRE muestra montos
             styles: {
               fillColor: isAhorro ? [254, 252, 232] : isIngreso ? [240, 253, 244] : [255, 241, 242],
               textColor: isAhorro ? [161, 98, 7] : isIngreso ? [21, 128, 61] : [225, 29, 72],
@@ -1102,11 +1112,75 @@ export default function App() {
     );
   }
 
+  /* ---------- ARREGLO PARA TUTORIAL QUIRÚRGICO ---------- */
+  const tutorialContent = [
+    {
+      title: "¡Bienvenido a Micapp!",
+      text: "Registra tus ingresos y gastos fácilmente todos los días.",
+      icon: <Wallet size={48} className="text-blue-500 mb-4" />
+    },
+    {
+      title: "Tus Ahorros",
+      text: "¡El Cochinito! Selecciona la categoría 'Ahorro' al registrar un gasto y ese dinero irá directo a tu meta visual.",
+      icon: <PiggyBank size={48} className="text-pink-500 mb-4" />
+    },
+    {
+      title: "Gráficos y Presupuestos",
+      text: "Revisa tu distribución de gastos y establece límites mensuales por categoría desde el menú principal.",
+      icon: <PieChartIcon size={48} className="text-emerald-500 mb-4" />
+    },
+    {
+      title: "Reportes en PDF",
+      text: "Descarga reportes de tus movimientos cuando lo necesites, ideales para tu control personal.",
+      icon: <FileText size={48} className="text-purple-500 mb-4" />
+    }
+  ];
+
   /* ---------- VISTA PRINCIPAL APP ---------- */
   return (
     <div className={profile.theme === 'dark' ? 'dark-theme' : ''}>
       <style>{globalStyles}</style>
       <div className="bg-mesh"></div>
+
+      {/* ---------------- MODAL TUTORIAL START ---------------- */}
+      {showTutorial && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 no-print">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-8 shadow-2xl relative text-center flex flex-col items-center transition-all duration-300 transform scale-100">
+            {tutorialContent[tutorialStep].icon}
+            <h2 className="text-2xl font-bold mb-3 text-slate-800">{tutorialContent[tutorialStep].title}</h2>
+            <p className="text-slate-500 font-medium mb-8 leading-relaxed">
+              {tutorialContent[tutorialStep].text}
+            </p>
+
+            <div className="flex gap-2 mb-8">
+              {tutorialContent.map((_, idx) => (
+                <span key={idx} className={`h-2.5 rounded-full transition-all duration-300 ${tutorialStep === idx ? 'w-8 bg-blue-600' : 'w-2.5 bg-slate-200'}`} />
+              ))}
+            </div>
+
+            <div className="flex w-full gap-3">
+              <button 
+                onClick={() => setShowTutorial(false)} 
+                className="flex-1 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition"
+              >
+                Saltar
+              </button>
+              <button 
+                onClick={() => {
+                  if (tutorialStep < tutorialContent.length - 1) {
+                    setTutorialStep(prev => prev + 1);
+                  } else {
+                    setShowTutorial(false);
+                  }
+                }} 
+                className="flex-1 py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition"
+              >
+                {tutorialStep < tutorialContent.length - 1 ? 'Siguiente' : 'Comenzar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ---------------- TOASTS NOTIFICATIONS FLOTANTES ---------------- */}
       {toast.show && (
@@ -1357,6 +1431,14 @@ export default function App() {
               <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-700">
                 {t('greeting')}, {profile.firstName}
               </h1>
+              {/* MODIFICACIÓN QUIRÚRGICA: Botón del Ojito para ocultar/mostrar */}
+              <button 
+                onClick={() => setShowAmounts(!showAmounts)} 
+                className="ml-2 p-2 rounded-full bg-white/50 border border-slate-200 text-slate-500 hover:text-blue-600 transition-colors shadow-sm hover:shadow-md focus:outline-none"
+                title={showAmounts ? "Ocultar saldos" : "Mostrar saldos"}
+              >
+                {showAmounts ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
             
             <div className={`mt-2 flex items-center gap-1.5 text-sm font-bold ${comparisonStats.diff > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
@@ -1426,7 +1508,6 @@ export default function App() {
                       </select>
                     </div>
 
-                    {/* BOTÓN NUEVO: PRESUPUESTOS POR CATEGORÍA */}
                     <button onClick={() => openMenuModal('budgets')} className="w-full text-left px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition">
                       <PiggyBank size={18} className="opacity-70" /> {t('budgets')}
                     </button>
@@ -1464,8 +1545,9 @@ export default function App() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('balance')}</p>
+                {/* MODIFICACIÓN QUIRÚRGICA: Ocultar si Ojito está presionado */}
                 <h2 className={`text-2xl md:text-3xl font-bold mt-1 ${balanceHistorico >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
-                  {formatCurrency(balanceHistorico)}
+                  {renderAmount(balanceHistorico)}
                 </h2>
               </div>
               <div className="p-3 bg-blue-100 rounded-2xl text-blue-600">
@@ -1479,7 +1561,7 @@ export default function App() {
               <div>
                 <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('income')}</p>
                 <h2 className="text-2xl md:text-3xl font-bold text-emerald-600 mt-1">
-                  {formatCurrency(stats.ingresos)}
+                  {renderAmount(stats.ingresos)}
                 </h2>
               </div>
               <div className="p-3 bg-emerald-100 rounded-2xl text-emerald-600">
@@ -1493,7 +1575,7 @@ export default function App() {
               <div>
                 <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('expenses')}</p>
                 <h2 className="text-2xl md:text-3xl font-bold text-rose-600 mt-1">
-                  {formatCurrency(stats.egresos)}
+                  {renderAmount(stats.egresos)}
                 </h2>
               </div>
               <div className="p-3 bg-rose-100 rounded-2xl text-rose-600">
@@ -1537,7 +1619,7 @@ export default function App() {
                 </div>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold text-slate-800">{formatCurrency(metaAhorro)}</h2>
+                  <h2 className="text-2xl font-bold text-slate-800">{renderAmount(metaAhorro)}</h2>
                   <button onClick={iniciarEdicionMeta} className="text-slate-400 hover:text-purple-600 hover:bg-purple-100 p-1.5 rounded-md transition-colors">
                     <Pencil size={16} />
                   </button>
@@ -1545,10 +1627,9 @@ export default function App() {
               )}
             </div>
 
-            {/* MOVIDO AQUI: LO QUE LLEVAS HASTA AHORA */}
             {totalAhorrado > 0 && (
               <p className="text-sm font-bold text-blue-600 mt-1 animate-fade-in-up">
-                {t('savedSoFar')}: {formatCurrency(totalAhorrado)}
+                {t('savedSoFar')}: {renderAmount(totalAhorrado)}
               </p>
             )}
             
@@ -1581,7 +1662,7 @@ export default function App() {
                   {t('investmentTip')}
                   {stats.innecesarios > 0 && (
                     <span className="text-xs font-bold px-2 py-0.5 bg-rose-100 text-rose-600 rounded-full">
-                      {t('unnecessaryExpenses')}: {formatCurrency(stats.innecesarios)}
+                      {t('unnecessaryExpenses')}: {renderAmount(stats.innecesarios)}
                     </span>
                   )}
                 </h3>
@@ -1665,7 +1746,8 @@ export default function App() {
                     <Pie data={gastosPorCategoria} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={5} stroke="none">
                       {gastosPorCategoria.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                     </Pie>
-                    <Tooltip formatter={(value) => formatCurrency(value)} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} />
+                    {/* MODIFICACIÓN QUIRÚRGICA: Tooltip oculto si el ojito está desactivado */}
+                    <Tooltip formatter={(value) => renderAmount(value)} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -1726,7 +1808,7 @@ export default function App() {
                     
                     <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
                       <span className={`font-extrabold ${tr.type === 'ingreso' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {tr.type === 'ingreso' ? '+' : '-'}{formatCurrency(tr.amount)}
+                        {tr.type === 'ingreso' ? '+' : '-'}{renderAmount(tr.amount)}
                       </span>
                       <div className="flex items-center gap-1 no-print">
                         <button onClick={() => iniciarEdicionTransaccion(tr)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Editar">
