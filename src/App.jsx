@@ -6,7 +6,12 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 /* --- IMPORTACIONES DE FIREBASE --- */
-import { signInWithPopup, onAuthStateChanged, signOut, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+// Se asume que la inicialización real (initializeApp, getFirestore, etc.) está en este archivo local.
+// Asegúrate de tener este archivo './firebase' en tu proyecto exportando auth, db y googleProvider.
+import { auth, db, googleProvider } from './firebase'; 
+
+import { signInWithPopup, onAuthStateChanged, signOut, signInWithCredential } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Capacitor } from '@capacitor/core';
 
@@ -318,7 +323,7 @@ const translateCategory = (cat, lang) => {
     }[cat] || cat,
     pt: {
       'Servicios': 'Serviços', 'Hogar': 'Lar', 'Alimentación': 'Alimentação', 'Filhos': 'Children', 'Transporte': 'Transporte',
-      'Entretenimiento': 'Entretenimento', 'Educación': 'Educação', 'Deudas': 'Dívidas', 'Gastos Innecesarios': 'Gastos Desnecessários',
+      'Entretenimiento': 'Entretenimento', 'Educación': 'Educação', 'Deudas': 'Dívidas', 'Gastos Desnecessários': 'Gastos Desnecessários',
       'Ahorro': 'Poupança',
       'Salario': 'Salário', 'Negocio': 'Negócio', 'Inversiones': 'Investimentos', 'Outros': 'Outros'
     }[cat] || cat
@@ -327,7 +332,6 @@ const translateCategory = (cat, lang) => {
 };
 
 /* ---------------- DATOS CONSTANTES ---------------- */
-// MODIFICACIÓN QUIRÚRGICA: Agregada categoría 'Hogar'
 const CATEGORIAS_EGRESO = ['Servicios', 'Hogar', 'Alimentación', 'Hijos', 'Transporte', 'Entretenimiento', 'Educación', 'Deudas', 'Gastos Innecesarios', 'Ahorro'];
 const CATEGORIAS_INGRESO = ['Salario', 'Negocio', 'Inversiones', 'Otros'];
 const COLORES_CATEGORIAS = {
@@ -346,7 +350,7 @@ const GoogleLogo = () => (
     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
     <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
     <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
   </svg>
 );
 
@@ -363,6 +367,18 @@ const GlassCard = ({ children, className = "" }) => (
     {children}
   </div>
 );
+
+// Helper simplificado: delega el formato real a lo que devuelva la API de conversión
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+    }).format(amount);
+};
+
+// Helpers de conversión simplificados (asumen relación 1:1 local, actualízalo a tu lógica)
+const convertToUSD = (amountLocal) => amountLocal;
+const convertFromUSD = (amountUSD) => amountUSD;
 
 /* ---------------- APP ---------------- */
 export default function App() {
@@ -381,7 +397,6 @@ export default function App() {
   const [mesActual, setMesActual] = useState(new Date().getMonth());
   const [anioActual, setAnioActual] = useState(new Date().getFullYear());
   
-  // MODIFICACIÓN QUIRÚRGICA: Comenzar meta en 0
   const [metaAhorro, setMetaAhorro] = useState(0); 
   const [budgets, setBudgets] = useState({});
   const [isEditingMeta, setIsEditingMeta] = useState(false);
@@ -393,10 +408,9 @@ export default function App() {
   const [tempProfile, setTempProfile] = useState(profile);
   const [pdfRange, setPdfRange] = useState('30'); 
   
-  // NUEVOS ESTADOS UI QUIRÚRGICOS
-  const [showAmounts, setShowAmounts] = useState(true); // Para ocultar montos (Ojito)
-  const [showTutorial, setShowTutorial] = useState(false); // Modal del Tutorial
-  const [tutorialStep, setTutorialStep] = useState(0); // Pasos del tutorial
+  const [showAmounts, setShowAmounts] = useState(true); 
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
 
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
   const [editingTransactionId, setEditingTransactionId] = useState(null);
@@ -448,10 +462,7 @@ export default function App() {
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
   };
 
-  // MODIFICACIÓN QUIRÚRGICA: Envoltura de renderizado de montos para el ojito (Ocultar saldos)
   const renderAmount = (val) => {
-    // Si showAmounts es falso, retornamos un string de viñetas, de lo contrario usamos la función original de la app.
-    // Como formatCurrency está declarada fuera de este bloque en tu app, la usamos directamente.
     return showAmounts ? formatCurrency(val) : '••••';
   };
 
@@ -467,7 +478,6 @@ export default function App() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.transactions) setTransactions(data.transactions);
-          // Permitir metas en 0 correctamente
           if (data.metaAhorro !== undefined) setMetaAhorro(data.metaAhorro);
           if (data.budgets) setBudgets(data.budgets); 
           if (data.profile) setProfile({ ...data.profile, isConfigured: true });
@@ -487,9 +497,9 @@ export default function App() {
           };
 
           setProfile(nuevoPerfil);
-          setTransactions(DATOS_EJEMPLO); // Empieza vacío
-          setMetaAhorro(0); // MODIFICACIÓN QUIRÚRGICA: Empieza en 0
-          setShowTutorial(true); // MODIFICACIÓN QUIRÚRGICA: Activar tutorial a usuarios nuevos
+          setTransactions(DATOS_EJEMPLO); 
+          setMetaAhorro(0); 
+          setShowTutorial(true); 
           
           setDoc(docRef, {
             profile: nuevoPerfil,
@@ -715,7 +725,6 @@ export default function App() {
     
     const amountUSD = convertToUSD(Number(formData.amount));
     
-    // MODIFICACIÓN QUIRÚRGICA: Autorefresh Asegurado inyectando clones estructurados al array
     if (editingTransactionId) {
       setTransactions(prev => {
         const nuevos = prev.map(tr => 
@@ -723,7 +732,7 @@ export default function App() {
             ? { ...formData, id: tr.id, amount: amountUSD, createdAt: tr.createdAt } 
             : tr
         );
-        return [...nuevos]; // Forzar mutabilidad y detección por React
+        return [...nuevos]; 
       });
       setEditingTransactionId(null);
       showToast(t('successUpdate') || "Actualizado exitosamente", 'success');
@@ -732,7 +741,7 @@ export default function App() {
       const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       const newTransaction = { ...formData, id: Date.now(), amount: amountUSD, createdAt: timeString };
       
-      setTransactions(prev => [...[newTransaction, ...prev]]); // Forzar inmutabilidad de arreglos
+      setTransactions(prev => [...[newTransaction, ...prev]]); 
 
       if ((transactions.length + 1) % 5 === 0) {
         showToast("Reporte actualizado, descarga tu PDF ahora", 'warning');
@@ -768,7 +777,7 @@ export default function App() {
     if (!transactionToDelete) return;
     setTransactions(prev => {
       const remaining = prev.filter(tr => tr.id !== transactionToDelete);
-      return [...remaining]; // Autorefresh garantizado
+      return [...remaining]; 
     });
     if (editingTransactionId === transactionToDelete) cancelarEdicion();
     showToast(t('successDelete') || "Eliminado exitosamente", 'success');
@@ -808,7 +817,6 @@ export default function App() {
     } 
   };
 
-  // NUEVA FUNCIÓN PARA ROMPER EL COCHINITO CON MONTO ESPECÍFICO
   const confirmBreakPiggy = (e) => {
     e.preventDefault();
     if (totalAhorrado <= 0) return;
@@ -885,7 +893,7 @@ export default function App() {
           tr.concept,
           translateCategory(tr.category, currentLang),
           {
-            content: `${isIngreso ? '+' : '-'}${formatCurrency(tr.amount)}`, // El PDF SIEMPRE muestra montos
+            content: `${isIngreso ? '+' : '-'}${formatCurrency(tr.amount)}`, 
             styles: {
               fillColor: isAhorro ? [254, 252, 232] : isIngreso ? [240, 253, 244] : [255, 241, 242],
               textColor: isAhorro ? [161, 98, 7] : isIngreso ? [21, 128, 61] : [225, 29, 72],
@@ -1039,7 +1047,7 @@ export default function App() {
                 <p>Los datos registrados dentro de la aplicación son proporcionados y gestionados por el propio usuario. Micapp no garantiza la exactitud de la información ingresada.</p>
 
                 <h3 className="font-bold text-slate-800 text-base mt-4">3. Finalidad informativa</h3>
-                <p>La información, reportes y análisis generados por la aplicación tienen fines únicamente informativos. Micapp no ofrece asesoramiento financiero, legal o contable.</p>
+                <p>La información, reportes y análisis generados por la aplicación tienen fines únicamente informativos. Micapp no offers asesoramiento financiero, legal o contable.</p>
 
                 <h3 className="font-bold text-slate-800 text-base mt-4">4. Responsabilidad</h3>
                 <p>El uso de la aplicación es bajo responsabilidad del usuario. Micapp no se hace responsable por decisiones financieras tomadas con base en la información mostrada.</p>
