@@ -10,7 +10,7 @@ import autoTable from 'jspdf-autotable';
 // Asegúrate de tener este archivo './firebase' en tu proyecto exportando auth, db y googleProvider.
 import { auth, db, googleProvider } from './firebase'; 
 
-import { signInWithPopup, onAuthStateChanged, signOut, signInWithCredential } from 'firebase/auth';
+import { signInWithPopup, onAuthStateChanged, signOut, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Capacitor } from '@capacitor/core';
@@ -322,10 +322,10 @@ const translateCategory = (cat, lang) => {
       'Salario': 'Salary', 'Negocio': 'Business', 'Inversiones': 'Investments', 'Otros': 'Other'
     }[cat] || cat,
     pt: {
-      'Servicios': 'Serviços', 'Hogar': 'Lar', 'Alimentación': 'Alimentação', 'Filhos': 'Children', 'Transporte': 'Transporte',
-      'Entretenimiento': 'Entretenimento', 'Educación': 'Educação', 'Deudas': 'Dívidas', 'Gastos Desnecessários': 'Gastos Desnecessários',
+      'Servicios': 'Serviços', 'Hogar': 'Lar', 'Alimentación': 'Alimentação', 'Hijos': 'Filhos', 'Transporte': 'Transporte',
+      'Entretenimiento': 'Entretenimento', 'Educación': 'Educação', 'Deudas': 'Dívidas', 'Gastos Innecesarios': 'Gastos Desnecessários',
       'Ahorro': 'Poupança',
-      'Salario': 'Salário', 'Negocio': 'Negócio', 'Inversiones': 'Investimentos', 'Outros': 'Outros'
+      'Salario': 'Salário', 'Negocio': 'Negócio', 'Inversiones': 'Investimentos', 'Otros': 'Outros'
     }[cat] || cat
   };
   return dict[lang] || cat; 
@@ -367,14 +367,6 @@ const GlassCard = ({ children, className = "" }) => (
     {children}
   </div>
 );
-
-// Helper simplificado: delega el formato real a lo que devuelva la API de conversión
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-    }).format(amount);
-};
 
 // Helpers de conversión simplificados (asumen relación 1:1 local, actualízalo a tu lógica)
 const convertToUSD = (amountLocal) => amountLocal;
@@ -457,6 +449,14 @@ export default function App() {
   const currentCurrency = profile?.isConfigured ? profile.currency : tempPreLoginCurr;
   const t = (key) => (translations[currentLang] && translations[currentLang][key]) || key;
 
+  // Formateador de moneda optimizado: Responde al idioma y moneda seleccionada
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat(currentLang === 'es' ? 'es-ES' : currentLang === 'pt' ? 'pt-BR' : 'en-US', {
+        style: 'currency',
+        currency: profile?.isConfigured ? profile.currency : tempPreLoginCurr,
+    }).format(amount);
+  };
+
   const showToast = (msg, type = 'success') => {
     setToast({ show: true, msg, type });
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
@@ -518,10 +518,13 @@ export default function App() {
     });
 
     return () => unsubscribe();
-  }, [tempPreLoginLang, tempPreLoginCurr]);
+  }, []); // <-- Array vacío optimizado para evitar re-suscripciones y fuga de memoria
 
   useEffect(() => {
-    if (authUser && profile.isConfigured && !isCheckingAuth) {
+    if (!authUser || !profile.isConfigured || isCheckingAuth) return;
+    
+    // Optimizador: Debounce para evitar sobrecargar la Base de Datos con lecturas instantáneas
+    const timeoutId = setTimeout(() => {
       const docRef = doc(db, "usuarios", authUser.uid);
       setDoc(docRef, {
         transactions,
@@ -532,7 +535,9 @@ export default function App() {
          console.error("Error guardando en la nube:", err);
          showToast(t('errorSave') || "Error de red", 'error');
       });
-    }
+    }, 1500);
+
+    return () => clearTimeout(timeoutId);
   }, [transactions, metaAhorro, budgets, profile, authUser, isCheckingAuth]);
 
   /* ---------- FUNCIONES DE AUTENTICACIÓN ---------- */
@@ -1754,7 +1759,6 @@ export default function App() {
                     <Pie data={gastosPorCategoria} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={5} stroke="none">
                       {gastosPorCategoria.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                     </Pie>
-                    {/* MODIFICACIÓN QUIRÚRGICA: Tooltip oculto si el ojito está desactivado */}
                     <Tooltip formatter={(value) => renderAmount(value)} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} />
                   </PieChart>
                 </ResponsiveContainer>
