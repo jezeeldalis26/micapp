@@ -284,7 +284,7 @@ const translations = {
     tip1000: "🔴 As despesas desnecessárias representam uma parte importante do orçamento.\n\nRedirecionar esse valor pode gerar melhorias financeiras relevantes.",
     tip3000: "🔴 Elevado nível de despesas desnecessárias detectado.\n\nOtimizar esse comportamento pode impactar diretamente a capacidade de poupança.",
     tipMax: "🔥 Alto volume de despesas desnecessárias.\n\nUma melhor gestão desses recursos pode contribuir para a construção de capital.",
-    menu: "Menu", annualReport: "Relatório Anual", downloadTransactions: "Baixar Transações",
+    menu: "Menu", Relatório Anual: "Relatório Anual", downloadTransactions: "Baixar Transações",
     editProfile: "Editar Dados Pessoais", saveChanges: "Salvar Alterações", cancel: "Cancelar", close: "Fechar",
     annualSummaryTitle: "Resumo Anual", year: "Ano", optional: "(Opcional)", logout: "Sair",
     theme: "Tema", lightMode: "Claro", darkMode: "Escuro",
@@ -410,6 +410,13 @@ export default function App() {
   const [tempPreLoginLang, setTempPreLoginLang] = useState('es');
   const [tempPreLoginCurr, setTempPreLoginCurr] = useState('USD');
 
+  // NUEVO: Referencias para que Firebase lea el valor actual y no el inicial
+  const langRef = React.useRef(tempPreLoginLang);
+  const currRef = React.useRef(tempPreLoginCurr);
+
+  useEffect(() => { langRef.current = tempPreLoginLang; }, [tempPreLoginLang]);
+  useEffect(() => { currRef.current = tempPreLoginCurr; }, [tempPreLoginCurr]);
+
   /* ---------- ESTADOS DE TASAS DE CAMBIO ---------- */
   const [exchangeRates, setExchangeRates] = useState(null);
   const [ratesError, setRatesError] = useState(false);
@@ -509,8 +516,8 @@ export default function App() {
             lastName: apellido.join(" "),
             email: currentUser.email,
             phone: '',
-            language: tempPreLoginLang,
-            currency: tempPreLoginCurr,
+            language: langRef.current, // <-- Cambiado
+            currency: currRef.current, // <-- Cambiado
             theme: 'light'
           };
 
