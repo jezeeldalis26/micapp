@@ -284,7 +284,7 @@ const translations = {
     tip1000: "🔴 As despesas desnecessárias representam uma parte importante do orçamento.\n\nRedirecionar esse valor pode gerar melhorias financeiras relevantes.",
     tip3000: "🔴 Elevado nível de despesas desnecessárias detectado.\n\nOtimizar esse comportamento pode impactar diretamente a capacidade de poupança.",
     tipMax: "🔥 Alto volume de despesas desnecessárias.\n\nUma melhor gestão desses recursos pode contribuir para a construção de capital.",
-    menu: "Menu", Relatório Anual: "Relatório Anual", downloadTransactions: "Baixar Transações",
+    menu: "Menu", annualReport: "Relatório Anual", downloadTransactions: "Baixar Transações",
     editProfile: "Editar Dados Pessoais", saveChanges: "Salvar Alterações", cancel: "Cancelar", close: "Fechar",
     annualSummaryTitle: "Resumo Anual", year: "Ano", optional: "(Opcional)", logout: "Sair",
     theme: "Tema", lightMode: "Claro", darkMode: "Escuro",
@@ -425,20 +425,41 @@ export default function App() {
     document.body.style.backgroundColor = profile?.theme === 'dark' ? '#0f172a' : '#f8fafc';
   }, [profile?.theme]);
 
-  /* ---------- API DE CAMBIO DE MONEDA ---------- */
+  /* ---------- API DE CAMBIO DE MONEDA (GLOBAL + VENEZUELA) ---------- */
   useEffect(() => {
     const fetchRates = async () => {
       try {
-        const response = await axios.get('https://api.frankfurter.app/latest?from=USD', { timeout: 3000 });
-        if (response.data && response.data.rates) {
-          setExchangeRates({ USD: 1, ...response.data.rates });
-        } else {
-          throw new Error("Respuesta inválida");
+        // 1. Petición a Frankfurter para tasas globales
+        const resGlobal = await axios.get('https://api.frankfurter.app/latest?from=USD', { timeout: 3000 });
+        let rates = { USD: 1, ...resGlobal.data.rates };
+
+        try {
+          // 2. Peticiones a DolarApi para Venezuela (Paralelo y Oficial BCV)
+          const [resParalelo, resBCV] = await Promise.all([
+            axios.get('https://ve.dolarapi.com/v1/dolares/paralelo', { timeout: 3000 }),
+            axios.get('https://ve.dolarapi.com/v1/dolares/oficial', { timeout: 3000 })
+          ]);
+          
+          if (resParalelo.data && resParalelo.data.promedio) {
+            rates.VES_PARALELO = resParalelo.data.promedio;
+            rates.VES = resParalelo.data.promedio; // Por defecto paralelo para conversiones main
+          }
+          if (resBCV.data && resBCV.data.promedio) {
+            rates.VES_BCV = resBCV.data.promedio;
+          }
+        } catch (vErr) {
+          console.error("Error DolarApi (Venezuela):", vErr);
+          rates.VES = 40.00; // Tasa de respaldo manual si falla la API
+          rates.VES_PARALELO = 40.00;
+          rates.VES_BCV = 36.50;
         }
+
+        setExchangeRates(rates);
       } catch (error) {
-        console.error("Error fetching exchange rates:", error);
+        console.error("Error Frankfurter (Global):", error);
         setRatesError(true);
-        setExchangeRates({ USD: 1, BRL: 5.05, EUR: 0.92, MXN: 16.8 });
+        // Respaldo total si falla el internet o Frankfurter
+        setExchangeRates({ USD: 1, BRL: 5.05, EUR: 0.92, MXN: 16.8, VES: 40.00, VES_PARALELO: 40.00, VES_BCV: 36.50 });
       } finally {
         setIsCheckingAuth(false); 
       }
@@ -482,6 +503,41 @@ export default function App() {
     }).format(localAmount);
   };
 
+  /* NUEVO: FORMATEADOR DIRECTO A DOLARES PARA LAS ETIQUETAS SECUNDARIAS */
+  const formatUSD = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol' }).format(val);
+
+  /* NUEVO: INYECTORES DE TRIPLE VISUALIZACIÓN PARA VENEZUELA */
+  const renderVesEquivalents = (amountUSD) => {
+    // Solo se dibuja si la moneda es VES, si el ojito está activado y si tenemos las tasas
+    if (currentCurrency !== 'VES' || !showAmounts || !exchangeRates?.VES_BCV || !exchangeRates?.VES_PARALELO) return null;
+    
+    const totalVES = amountUSD * exchangeRates.VES;
+    const usdBCV = totalVES / exchangeRates.VES_BCV;
+    const usdParalelo = totalVES / exchangeRates.VES_PARALELO;
+
+    return (
+      <div className="flex items-center gap-2 mt-1.5 text-[11px] font-semibold text-slate-400">
+        <span title="Dólar BCV" className="bg-slate-100/80 px-2 py-0.5 rounded-md border border-slate-200/50">BCV: {formatUSD(usdBCV)}</span>
+        <span title="Dólar No Oficial" className="bg-slate-100/80 px-2 py-0.5 rounded-md border border-slate-200/50">Paralelo: {formatUSD(usdParalelo)}</span>
+      </div>
+    );
+  };
+
+  const renderVesEquivalentsList = (amountUSD) => {
+    if (currentCurrency !== 'VES' || !showAmounts || !exchangeRates?.VES_BCV || !exchangeRates?.VES_PARALELO) return null;
+    
+    const totalVES = amountUSD * exchangeRates.VES;
+    const usdBCV = totalVES / exchangeRates.VES_BCV;
+    const usdParalelo = totalVES / exchangeRates.VES_PARALELO;
+
+    return (
+      <div className="flex flex-col items-end text-[9px] font-semibold text-slate-400 leading-tight mt-0.5 gap-0.5">
+         <span>BCV: {formatUSD(usdBCV)}</span>
+         <span>Paralelo: {formatUSD(usdParalelo)}</span>
+      </div>
+    );
+  };
+
   const showToast = (msg, type = 'success') => {
     setToast({ show: true, msg, type });
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
@@ -516,8 +572,8 @@ export default function App() {
             lastName: apellido.join(" "),
             email: currentUser.email,
             phone: '',
-            language: langRef.current, // <-- Cambiado
-            currency: currRef.current, // <-- Cambiado
+            language: langRef.current, // Usando la referencia
+            currency: currRef.current, // Usando la referencia
             theme: 'light'
           };
 
@@ -1117,6 +1173,8 @@ export default function App() {
                   <option value="EUR">EUR (€)</option>
                   <option value="BRL">BRL (R$)</option>
                   <option value="MXN">MXN ($)</option>
+                  {/* NUEVO: Agregado el VES en el menú inicial */}
+                  <option value="VES">Bolívar Venezolano (VES)</option>
                 </select>
               </div>
             </div>
@@ -1327,6 +1385,8 @@ export default function App() {
                   <option value="EUR">EUR (€)</option>
                   <option value="BRL">BRL (R$)</option>
                   <option value="MXN">MXN ($)</option>
+                  {/* NUEVO: Agregado el VES en el menú de editar perfil */}
+                  <option value="VES">VES (Bs.)</option>
                 </select>
               </div>
 
@@ -1573,14 +1633,16 @@ export default function App() {
 
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 no-print">
+          
           <GlassCard className="relative overflow-hidden group">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('balance')}</p>
-                {/* MODIFICACIÓN QUIRÚRGICA: Ocultar si Ojito está presionado */}
                 <h2 className={`text-2xl md:text-3xl font-bold mt-1 ${balanceHistorico >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
                   {renderAmount(balanceHistorico)}
                 </h2>
+                {/* NUEVO: Triple visualización para VES */}
+                {renderVesEquivalents(balanceHistorico)}
               </div>
               <div className="p-3 bg-blue-100 rounded-2xl text-blue-600">
                 <Wallet size={24} />
@@ -1595,6 +1657,8 @@ export default function App() {
                 <h2 className="text-2xl md:text-3xl font-bold text-emerald-600 mt-1">
                   {renderAmount(stats.ingresos)}
                 </h2>
+                {/* NUEVO: Triple visualización para VES */}
+                {renderVesEquivalents(stats.ingresos)}
               </div>
               <div className="p-3 bg-emerald-100 rounded-2xl text-emerald-600">
                 <TrendingUp size={24} />
@@ -1609,6 +1673,8 @@ export default function App() {
                  <h2 className="text-2xl md:text-3xl font-bold text-rose-600 mt-1">
                   {renderAmount(stats.egresos)}
                 </h2>
+                {/* NUEVO: Triple visualización para VES */}
+                {renderVesEquivalents(stats.egresos)}
               </div>
               <div className="p-3 bg-rose-100 rounded-2xl text-rose-600">
                 <TrendingDown size={24} />
@@ -1616,7 +1682,7 @@ export default function App() {
             </div>
           </GlassCard>
 
-          {/* TARJETA META DE AHORRO CON CAMBIOS */}
+          {/* TARJETA META DE AHORRO */}
           <GlassCard>
             <div className="flex justify-between items-start mb-2">
               <div>
@@ -1639,9 +1705,9 @@ export default function App() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2 h-8 mt-1">
+            <div className="flex flex-col gap-1 mt-1">
               {isEditingMeta ? (
-                <div className="flex items-center gap-2 w-full">
+                <div className="flex items-center gap-2 w-full h-8">
                   <input
                     type="number" value={tempMeta} onChange={(e) => setTempMeta(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveMeta()}
@@ -1650,19 +1716,25 @@ export default function App() {
                   <button onClick={handleSaveMeta} className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 p-1 rounded-md transition-colors"><Check size={20} /></button>
                 </div>
               ) : (
-                <>
-                  <h2 className="text-2xl font-bold text-slate-800">{renderAmount(metaAhorro)}</h2>
-                  <button onClick={iniciarEdicionMeta} className="text-slate-400 hover:text-purple-600 hover:bg-purple-100 p-1.5 rounded-md transition-colors">
-                    <Pencil size={16} />
-                  </button>
-                </>
+                <div>
+                  <div className="flex items-center gap-2 h-8">
+                    <h2 className="text-2xl font-bold text-slate-800">{renderAmount(metaAhorro)}</h2>
+                    <button onClick={iniciarEdicionMeta} className="text-slate-400 hover:text-purple-600 hover:bg-purple-100 p-1.5 rounded-md transition-colors">
+                      <Pencil size={16} />
+                    </button>
+                  </div>
+                  {/* NUEVO: Triple visualización para VES */}
+                  {renderVesEquivalents(metaAhorro)}
+                </div>
               )}
             </div>
 
             {totalAhorrado > 0 && (
-              <p className="text-sm font-bold text-blue-600 mt-1 animate-fade-in-up">
-                {t('savedSoFar')}: {renderAmount(totalAhorrado)}
-               </p>
+              <div className="mt-2">
+                <p className="text-sm font-bold text-blue-600 animate-fade-in-up">
+                  {t('savedSoFar')}: {renderAmount(totalAhorrado)}
+                </p>
+              </div>
             )}
             
             <div className="w-full bg-slate-200/50 rounded-full h-2.5 mt-3 overflow-hidden relative">
@@ -1838,9 +1910,14 @@ export default function App() {
                     </div>
                     
                     <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
-                      <span className={`font-extrabold ${tr.type === 'ingreso' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {tr.type === 'ingreso' ? '+' : '-'}{renderAmount(tr.amount)}
-                      </span>
+                      <div className="flex flex-col items-end">
+                        <span className={`font-extrabold ${tr.type === 'ingreso' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {tr.type === 'ingreso' ? '+' : '-'}{renderAmount(tr.amount)}
+                        </span>
+                        {/* NUEVO: Triple visualización para VES en la lista */}
+                        {renderVesEquivalentsList(tr.amount)}
+                      </div>
+                      
                       <div className="flex items-center gap-1 no-print">
                         <button onClick={() => iniciarEdicionTransaccion(tr)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Editar">
                            <Pencil size={16} />
