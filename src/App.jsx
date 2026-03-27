@@ -10,7 +10,7 @@ import autoTable from 'jspdf-autotable';
 // Asegúrate de tener este archivo './firebase' en tu proyecto exportando auth, db y googleProvider.
 import { auth, db, googleProvider } from './firebase'; 
 
-import { signInWithPopup, onAuthStateChanged, signOut, signInWithCredential } from 'firebase/auth';
+import { signInWithPopup, onAuthStateChanged, signOut, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Capacitor } from '@capacitor/core';
@@ -144,7 +144,7 @@ body {
 
 .dark-theme input, .dark-theme select { 
   background-color: #334155 !important; 
-  color: #f8fafc !important; 
+  color: #f8fafc !important;
   border-color: #475569 !important;
 }
 .dark-theme select option { background-color: #1e293b !important; color: #f8fafc !important; }
@@ -340,7 +340,6 @@ const COLORES_CATEGORIAS = {
   Ahorro: '#0ea5e9', 
   Salario: '#22c55e', Negocio: '#0ea5e9', Inversiones: '#8b5cf6', Otros: '#64748b'
 };
-
 const DATOS_EJEMPLO = [];
 const RAW_SVG_LOGO = `<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"><defs><linearGradient id="Degradado_sin_nombre_7" data-name="Degradado sin nombre 7" x1="77.23" y1="488.48" x2="901.64" y2="488.48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4bd400"/><stop offset="1" stop-color="#f0ff15"/></linearGradient></defs><path d="m217.11,723.75c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.66,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.22-8.48-22.88-14.51-6.66-6.01-11.92-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c0-32.23,6.34-62.63,19.01-91.21,12.67-28.57,29.97-53.5,51.89-74.77,21.92-21.27,47.38-38.13,76.38-50.6,29.01-12.46,59.62-18.69,91.85-18.69s64.99,6.45,94.43,19.34c29.43,12.89,55.32,30.52,77.67,52.86,22.34-22.34,48.44-39.96,78.31-52.86,29.86-12.89,61.56-19.34,95.08-19.34s63.17,6.02,91.53,18.05c28.36,12.04,53.28,28.58,74.77,49.63,21.48,21.06,38.68,45.55,51.57,73.48,12.89,27.94,19.98,57.8,21.27,89.6,0,.87.1,1.83.32,2.9.21,1.08.32,2.05.32,2.9v302.3c0,9.46-1.83,18.37-5.48,26.75-3.66,8.38-8.6,15.58-14.83,21.59-6.23,6.02-13.44,10.86-21.59,14.51-8.17,3.66-16.98,5.48-26.43,5.48s-18.59-1.82-27.39-5.48c-8.82-3.65-16.44-8.48-22.89-14.51-6.45-6.01-11.6-13.21-15.47-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-304.24c-.44-13.75-3.44-26.43-9.02-38.03-5.59-11.6-13-21.59-22.24-29.97-9.25-8.38-19.77-14.93-31.58-19.66-11.83-4.72-24.61-7.09-38.35-7.09s-26.86,2.58-39.32,7.73c-12.47,5.16-23.32,12.15-32.55,20.95-9.25,8.81-16.55,19.13-21.92,30.94-5.38,11.83-8.06,24.6-8.06,38.35v301.02c0,19.34-6.56,35.56-19.66,48.66-13.11,13.11-29.33,19.66-48.67,19.66-9.46,0-18.48-1.82-27.07-5.48-8.6-3.65-16.23-8.48-22.88-14.51-6.67-6.01-11.93-13.21-15.79-21.59-3.87-8.38-5.8-17.29-5.8-26.75v-303.59c-.43-13.75-3.33-26.53-8.7-38.35-5.38-11.81-12.57-21.92-21.59-30.3-9.03-8.38-19.56-14.93-31.58-19.66-12.04-4.72-24.93-7.09-38.68-7.09s-26.75,2.48-39,7.41c-12.25,4.94-22.99,11.82-32.23,20.63-9.25,8.81-16.55,19.01-21.92,30.62-5.38,11.6-8.06,24.07-8.06,37.38v302.95Z" fill="url(#Degradado_sin_nombre_7)" strokeWidth="0"/>
 </svg>`;
@@ -368,10 +367,6 @@ const GlassCard = ({ children, className = "" }) => (
   </div>
 );
 
-// Helpers de conversión simplificados (asumen relación 1:1 local, actualízalo a tu lógica)
-const convertToUSD = (amountLocal) => amountLocal;
-const convertFromUSD = (amountUSD) => amountUSD;
-
 /* ---------------- APP ---------------- */
 export default function App() {
   /* ---------- ESTADOS DE FIREBASE ---------- */
@@ -391,6 +386,7 @@ export default function App() {
   
   const [metaAhorro, setMetaAhorro] = useState(0); 
   const [budgets, setBudgets] = useState({});
+
   const [isEditingMeta, setIsEditingMeta] = useState(false);
   const [tempMeta, setTempMeta] = useState("");
   const [breakAmount, setBreakAmount] = useState(""); 
@@ -400,10 +396,9 @@ export default function App() {
   const [tempProfile, setTempProfile] = useState(profile);
   const [pdfRange, setPdfRange] = useState('30'); 
   
-  const [showAmounts, setShowAmounts] = useState(true); 
+  const [showAmounts, setShowAmounts] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
-
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
   const [editingTransactionId, setEditingTransactionId] = useState(null);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
@@ -447,14 +442,37 @@ export default function App() {
   /* ---------- AYUDANTES ---------- */
   const currentLang = profile?.isConfigured ? profile.language : tempPreLoginLang;
   const currentCurrency = profile?.isConfigured ? profile.currency : tempPreLoginCurr;
+  
   const t = (key) => (translations[currentLang] && translations[currentLang][key]) || key;
 
-  // Formateador de moneda optimizado: Responde al idioma y moneda seleccionada
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat(currentLang === 'es' ? 'es-ES' : currentLang === 'pt' ? 'pt-BR' : 'en-US', {
+  /* MODIFICACIÓN: FUNCIONES DE CONVERSIÓN INTEGRADAS CON EL ESTADO DE TASAS */
+  const convertToUSD = (amountLocal) => {
+    if (!exchangeRates || !exchangeRates[currentCurrency]) return amountLocal;
+    return amountLocal / exchangeRates[currentCurrency];
+  };
+
+  const convertFromUSD = (amountUSD) => {
+    if (!exchangeRates || !exchangeRates[currentCurrency]) return amountUSD;
+    return amountUSD * exchangeRates[currentCurrency];
+  };
+
+  /* MODIFICACIÓN: FORMATEADOR OPTIMIZADO PARA APLICAR LAS TASAS Y SÍMBOLOS ESTÉTICOS */
+  const formatCurrency = (amountUSD) => {
+    let localAmount = amountUSD;
+    if (exchangeRates && exchangeRates[currentCurrency]) {
+      localAmount = amountUSD * exchangeRates[currentCurrency];
+    }
+
+    // Aseguramos que el locale devuelva siempre el símbolo corto ($) y no textos como "US$"
+    let locale = 'en-US'; 
+    if (currentCurrency === 'BRL') locale = 'pt-BR';
+    else if (currentCurrency === 'EUR') locale = 'es-ES';
+    
+    return new Intl.NumberFormat(locale, {
         style: 'currency',
-        currency: profile?.isConfigured ? profile.currency : tempPreLoginCurr,
-    }).format(amount);
+        currency: currentCurrency,
+        currencyDisplay: 'narrowSymbol'
+    }).format(localAmount);
   };
 
   const showToast = (msg, type = 'success') => {
@@ -484,7 +502,7 @@ export default function App() {
         } else {
           const nombreCompleto = currentUser.displayName || "";
           const [nombre, ...apellido] = nombreCompleto.split(" ");
-          
+       
           const nuevoPerfil = {
             isConfigured: true,
             firstName: nombre,
@@ -518,7 +536,7 @@ export default function App() {
     });
 
     return () => unsubscribe();
-  }, []); // <-- Array vacío optimizado para evitar re-suscripciones y fuga de memoria
+  }, []);
 
   useEffect(() => {
     if (!authUser || !profile.isConfigured || isCheckingAuth) return;
@@ -727,7 +745,6 @@ export default function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.amount || !formData.concept || !formData.date) return;
-    
     const amountUSD = convertToUSD(Number(formData.amount));
     
     if (editingTransactionId) {
@@ -745,7 +762,6 @@ export default function App() {
       const now = new Date();
       const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       const newTransaction = { ...formData, id: Date.now(), amount: amountUSD, createdAt: timeString };
-      
       setTransactions(prev => [...[newTransaction, ...prev]]); 
 
       if ((transactions.length + 1) % 5 === 0) {
@@ -825,7 +841,6 @@ export default function App() {
   const confirmBreakPiggy = (e) => {
     e.preventDefault();
     if (totalAhorrado <= 0) return;
-    
     const amountToWithdrawLocal = parseFloat(breakAmount);
     if (isNaN(amountToWithdrawLocal) || amountToWithdrawLocal <= 0) {
       showToast(t('withdrawError'), 'error');
@@ -852,7 +867,6 @@ export default function App() {
       concept: t('piggyBreakConcept'),
       createdAt: timeString
     };
-
     setTransactions(prev => [...[newTransaction, ...prev]]);
     showToast(t('piggyBroken'), 'success');
     setActiveModal(null);
@@ -869,7 +883,6 @@ export default function App() {
 
       const now = new Date();
       let movimientosPDF = [];
-
       if (pdfRange === 'all') {
         movimientosPDF = [...transactions];
       } else {
@@ -885,7 +898,6 @@ export default function App() {
       movimientosPDF.sort((a,b) => new Date(b.date) - new Date(a.date));
 
       let inTot = 0, outTot = 0;
-
       movimientosPDF.forEach(tr => {
         if (tr.type === 'ingreso') inTot += tr.amount;
         else outTot += tr.amount;
@@ -909,7 +921,6 @@ export default function App() {
         ];
         tableRows.push(rowData);
       });
-
       const balTot = inTot - outTot;
 
       await new Promise((resolve) => {
@@ -1095,10 +1106,10 @@ export default function App() {
               <div>
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">{translations[currentLang].currency}</label>
                 <select value={tempPreLoginCurr} onChange={e => setTempPreLoginCurr(e.target.value)} className="w-full mt-1.5 p-3.5 bg-slate-50/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 font-medium transition-all">
-                  <option value="USD">Dólar Estadounidense (USD)</option>
-                  <option value="EUR">Euro (EUR)</option>
-                  <option value="BRL">Real Brasileño (BRL)</option>
-                  <option value="MXN">Peso Mexicano (MXN)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="BRL">BRL (R$)</option>
+                  <option value="MXN">MXN ($)</option>
                 </select>
               </div>
             </div>
@@ -1166,7 +1177,7 @@ export default function App() {
             </p>
 
             <div className="flex gap-2 mb-8">
-              {tutorialContent.map((_, idx) => (
+               {tutorialContent.map((_, idx) => (
                 <span key={idx} className={`h-2.5 rounded-full transition-all duration-300 ${tutorialStep === idx ? 'w-8 bg-blue-600' : 'w-2.5 bg-slate-200'}`} />
               ))}
             </div>
@@ -1212,7 +1223,7 @@ export default function App() {
           ) : (
             <Check size={20} />
           )}
-          {toast.msg}
+           {toast.msg}
         </div>
       )}
 
@@ -1257,7 +1268,7 @@ export default function App() {
       )}
 
       {/* MODAL ELIMINAR TRANSACCIÓN */}
-      {transactionToDelete && (
+       {transactionToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 no-print">
           <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl relative text-center">
             <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 mt-2">
@@ -1269,7 +1280,7 @@ export default function App() {
             <div className="flex gap-3">
               <button onClick={() => setTransactionToDelete(null)} className="flex-1 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition">{t('cancel')}</button>
               <button onClick={confirmDelete} className="flex-1 py-3.5 bg-rose-600 text-white font-bold rounded-xl shadow-lg shadow-rose-500/30 hover:bg-rose-700 transition">{t('confirm')}</button>
-            </div>
+           </div>
           </div>
         </div>
       )}
@@ -1362,7 +1373,7 @@ export default function App() {
             
             <div className="space-y-3">
               <div className="p-4 bg-emerald-50 rounded-2xl flex justify-between items-center">
-                <span className="font-semibold text-emerald-700 uppercase text-xs tracking-wider">{t('totalIncome')}</span>
+                 <span className="font-semibold text-emerald-700 uppercase text-xs tracking-wider">{t('totalIncome')}</span>
                 <span className="font-bold text-lg text-emerald-700">{formatCurrency(annualStats.ingresos)}</span>
               </div>
               <div className="p-4 bg-rose-50 rounded-2xl flex justify-between items-center">
@@ -1418,7 +1429,7 @@ export default function App() {
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-2 mb-1 overflow-hidden">
                       <div className={`h-2 rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${Math.min(percentage, 100)}%` }}></div>
-                    </div>
+                     </div>
                     <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-1">
                         <span>{formatCurrency(spent)}</span>
                         <span>{limit > 0 ? `${percentage.toFixed(0)}%` : ''}</span>
@@ -1471,6 +1482,7 @@ export default function App() {
                 <option key={idx} value={idx}>{mes}</option>
               ))}
             </select>
+          
             <select 
               className="bg-white/50 backdrop-blur-md border border-slate-200 text-slate-700 font-semibold py-2 px-3 md:px-4 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
               value={anioActual} onChange={(e) => setAnioActual(Number(e.target.value))}
@@ -1587,7 +1599,7 @@ export default function App() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('expenses')}</p>
-                <h2 className="text-2xl md:text-3xl font-bold text-rose-600 mt-1">
+                 <h2 className="text-2xl md:text-3xl font-bold text-rose-600 mt-1">
                   {renderAmount(stats.egresos)}
                 </h2>
               </div>
@@ -1643,7 +1655,7 @@ export default function App() {
             {totalAhorrado > 0 && (
               <p className="text-sm font-bold text-blue-600 mt-1 animate-fade-in-up">
                 {t('savedSoFar')}: {renderAmount(totalAhorrado)}
-              </p>
+               </p>
             )}
             
             <div className="w-full bg-slate-200/50 rounded-full h-2.5 mt-3 overflow-hidden relative">
@@ -1661,7 +1673,7 @@ export default function App() {
               </p>
             )}
           </GlassCard>
-        </div>
+         </div>
 
         {/* CONSEJOS DE INVERSIÓN */}
         <div className={`transition-all duration-500 overflow-hidden no-print ${stats.innecesarios > 0 ? 'opacity-100 max-h-[500px]' : 'opacity-80 max-h-[200px]'}`}>
@@ -1808,7 +1820,7 @@ export default function App() {
                           {tr.concept}
                         </span>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-slate-500 font-semibold text-[12px]">
+                           <span className="text-slate-500 font-semibold text-[12px]">
                             {tr.date.split('-').reverse().join('/')} {tr.createdAt && `• ${tr.createdAt}`}
                           </span>
                           <span className="px-2 py-0.5 text-[10px] font-bold rounded-md" style={{ color: COLORES_CATEGORIAS[tr.category] || '#94a3b8', backgroundColor: `${COLORES_CATEGORIAS[tr.category] || '#94a3b8'}20` }}>
@@ -1824,7 +1836,7 @@ export default function App() {
                       </span>
                       <div className="flex items-center gap-1 no-print">
                         <button onClick={() => iniciarEdicionTransaccion(tr)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Editar">
-                          <Pencil size={16} />
+                           <Pencil size={16} />
                         </button>
                         <button onClick={() => setTransactionToDelete(tr.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Eliminar">
                           <Trash2 size={16} />
